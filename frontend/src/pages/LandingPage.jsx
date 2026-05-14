@@ -743,7 +743,7 @@ const LandingPage = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <img src="/logoPrincipal.png" alt="SystemLEX Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    <img src="/logoPrincipal.png" alt="MenduzLegalGroup Logo" style={{ width: '300px', height: '100px' }} />
                   </Box>
                 </Stack>
                 

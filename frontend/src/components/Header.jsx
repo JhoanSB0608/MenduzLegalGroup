@@ -52,7 +52,7 @@ const Header = () => {
             },
           }}
         >
-          <img src="/logoPrincipal.png" alt="SystemLEX Logo" style={{ height: '60px', marginRight: '8px' }} />
+          <img src="/logoPrincipal.png" alt="MenduzLegalGroup Logo" style={{ height: '100px', marginRight: '8px' }} />
         </Box>
         
         {/* User indicator for smaller screens */}

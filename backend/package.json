@@ -32,5 +32,8 @@
     "pdfkit-table": "^0.1.99",
     "pdfmake": "^0.1.71",
     "resend": "^6.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

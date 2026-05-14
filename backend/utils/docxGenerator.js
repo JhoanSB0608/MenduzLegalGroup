@@ -615,7 +615,7 @@ const tableRows = detalleData.map(
   children.push(createParagraph([createTextRun('Deudor(a)')], { alignment: AlignmentType.CENTER }));
 
   const docInstance = new Document({
-    creator: 'SystemLex',
+    creator: 'MenduzLegalGroup',
     title: `Solicitud de Insolvencia - ${nombreCompleto}`,
     styles: {
       paragraph: {
@@ -812,7 +812,7 @@ const generateConciliacionDocx = async (solicitud = {}) => {
   ]));
 
   const doc = new Document({
-    creator: 'SystemLex',
+    creator: 'MenduzLegalGroup',
     title: `Conciliacion - ${nombreConvocante}`,
     sections: [{
       properties: {
