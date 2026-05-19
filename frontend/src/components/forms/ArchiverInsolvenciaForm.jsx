@@ -176,54 +176,6 @@ const ArchiverInsolvenciaForm = ({ onSubmit, archiverEntryId, initialData, onUpl
     });
   };
 
-  // Button Styles based on Design System
-  const primaryButtonStyles = {
-    backgroundColor: 'var(--color-cta)', // Using CTA color as primary for action
-    color: 'var(--color-text)',
-    padding: '12px 24px',
-    borderRadius: 'var(--border-radius-md)', // Use design system token
-    fontWeight: 600,
-    transition: 'all 200ms ease',
-    cursor: 'pointer',
-    boxShadow: 'var(--shadow-md)', // Add shadow for depth
-    '&:hover': {
-      backgroundColor: 'var(--color-secondary)', // Using secondary for hover effect
-      opacity: 0.9,
-      transform: 'translateY(-1px)',
-      boxShadow: 'var(--shadow-lg)', // Enhance shadow on hover
-    },
-    '&:active': {
-      transform: 'translateY(0px)', // Reset transform on active
-    },
-    '& .MuiButton-startIcon': { // Style for the icon
-      marginRight: 'var(--space-sm)',
-    },
-  };
-
-  const secondaryButtonStyles = {
-    background: 'transparent',
-    color: 'var(--color-primary)',
-    border: `2px solid var(--color-primary)`,
-    padding: '12px 24px',
-    borderRadius: 'var(--border-radius-md)', // Use design system token
-    fontWeight: 600,
-    transition: 'all 200ms ease',
-    cursor: 'pointer',
-    boxShadow: 'none', // No shadow for secondary
-    '&:hover': {
-      color: 'var(--color-secondary)',
-      border: `2px solid var(--color-secondary)`,
-      opacity: 0.9,
-      transform: 'translateY(-1px)',
-    },
-    '&:active': {
-      transform: 'translateY(0px)',
-    },
-     '& .MuiButton-startIcon': { // Style for the icon
-      marginRight: 'var(--space-sm)',
-    },
-  };
-
   return (
     <GlassCard sx={{ p: 3 }}>
       <Stack spacing={3}>

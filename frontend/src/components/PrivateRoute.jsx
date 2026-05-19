@@ -1,11 +1,10 @@
 import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../App';
-import { CircularProgress, Box, Typography, useTheme, alpha } from '@mui/material';
+import { CircularProgress, Box, Typography, alpha } from '@mui/material';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
-  const theme = useTheme();
 
   if (loading) {
     return (
@@ -19,9 +18,9 @@ const PrivateRoute = ({ children }) => {
           padding: 2,
           // Apply glassmorphism background using design system colors
           background: `
-            linear-gradient(135deg, ${alpha('var(--color-background)', 0.2)} 0%, ${alpha('var(--color-primary)', 0.1)} 100%),
-            radial-gradient(circle at 20% 80%, ${alpha('var(--color-cta)', 0.15)}, transparent 50%),
-            radial-gradient(circle at 80% 20%, ${alpha('var(--color-secondary)', 0.15)}, transparent 50%)
+            linear-gradient(135deg, ${alpha('#0F172A', 0.2)} 0%, ${alpha('#F59E0B', 0.1)} 100%),
+            radial-gradient(circle at 20% 80%, ${alpha('#8B5CF6', 0.15)}, transparent 50%),
+            radial-gradient(circle at 80% 20%, ${alpha('#FBBF24', 0.15)}, transparent 50%)
           `,
           '&::before': {
             content: '""',

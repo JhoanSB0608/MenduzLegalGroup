@@ -103,7 +103,7 @@ const DescriptionModal = ({ open, onClose, onConfirm, defaultValue = '' }) => {
       <DialogTitle 
         sx={{ 
           borderBottom: `1px solid rgba(255, 255, 255, 0.1)`, // Subtle border
-          background: `linear-gradient(135deg, ${alpha('var(--color-primary)', 0.08)} 0%, ${alpha('var(--color-secondary)', 0.08)} 100%)`, // Use primary/secondary for gradient
+          background: `linear-gradient(135deg, ${alpha('#F59E0B', 0.08)} 0%, ${alpha('#FBBF24', 0.08)} 100%)`, // Use primary/secondary for gradient
           py: 3, // Vertical padding
           px: 3, // Horizontal padding
         }}
@@ -405,7 +405,7 @@ export const ArchiverAnexosSection = ({ anexos, archiverEntryId, onUploadSuccess
           >
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Avatar sx={{ bgcolor: alpha('var(--color-primary)', 0.1), color: 'var(--color-primary)', width: 36, height: 36 }}> {/* Use primary color for avatar */}
+                <Avatar sx={{ bgcolor: alpha('#F59E0B', 0.1), color: 'var(--color-primary)', width: 36, height: 36 }}> {/* Use primary color for avatar */}
                   <DescriptionIcon sx={{ fontSize: 20 }} />
                 </Avatar>
                 <Box>
@@ -418,10 +418,10 @@ export const ArchiverAnexosSection = ({ anexos, archiverEntryId, onUploadSuccess
                 onClick={() => handleDownload(anexo)}
                 sx={{
                   // Apply subtle premium styling to download button
-                  bgcolor: alpha('var(--color-secondary)', 0.1),
+                  bgcolor: alpha('#FBBF24', 0.1),
                   color: 'var(--color-secondary)',
                   '&:hover': {
-                    bgcolor: alpha('var(--color-secondary)', 0.2),
+                    bgcolor: alpha('#FBBF24', 0.2),
                     transform: 'scale(1.1)',
                   },
                   transition: 'all 0.2s ease',

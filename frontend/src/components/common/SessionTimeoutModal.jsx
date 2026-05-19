@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, CircularProgress, useTheme, alpha } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, CircularProgress } from '@mui/material';
 import { Warning } from '@mui/icons-material';
 
 const SessionTimeoutModal = ({ open, onLogout, onStay }) => {
-  const theme = useTheme();
   const [countdown, setCountdown] = useState(30);
 
   useEffect(() => {

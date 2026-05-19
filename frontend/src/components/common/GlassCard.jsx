@@ -1,8 +1,7 @@
 import React from 'react';
-import { Card, useTheme, alpha } from '@mui/material';
+import { Card } from '@mui/material';
 
 const GlassCard = React.forwardRef(({ children, sx = {}, hover = true }, ref) => {
-  const theme = useTheme();
   return (
     <Card
       ref={ref}

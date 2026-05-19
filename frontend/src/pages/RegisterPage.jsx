@@ -77,9 +77,9 @@ const RegisterPage = () => {
         padding: 2,
         // Background with glassmorphism effect using design system colors
         background: `
-          linear-gradient(135deg, ${alpha('var(--color-background)', 0.2)} 0%, ${alpha('var(--color-primary)', 0.1)} 100%),
-          radial-gradient(circle at 20% 80%, ${alpha('var(--color-cta)', 0.15)}, transparent 50%),
-          radial-gradient(circle at 80% 20%, ${alpha('var(--color-secondary)', 0.15)}, transparent 50%)
+          linear-gradient(135deg, ${alpha('#0F172A', 0.2)} 0%, ${alpha('#F59E0B', 0.1)} 100%),
+          radial-gradient(circle at 20% 80%, ${alpha('#8B5CF6', 0.15)}, transparent 50%),
+          radial-gradient(circle at 80% 20%, ${alpha('#FBBF24', 0.15)}, transparent 50%)
         `,
         // Add subtle animated background elements if desired, but keep it premium
       }}
