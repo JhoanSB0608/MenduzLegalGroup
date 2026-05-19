@@ -5,6 +5,8 @@
 .App-logo {
   height: 40vmin;
   pointer-events: none;
+  /* Add transition for potential hover effects later */
+  transition: transform 0.3s ease-in-out;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -14,18 +16,26 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  /* Removed background-color and color, relying on global variables */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  /* background: linear-gradient(135deg, var(--color-background) 0%, rgba(0,0,0,0.7) 70%, var(--color-primary) 100%); */ /* Example gradient */
+  /* backdrop-filter: blur(8px); */ /* Example liquid glass effect */
 }
 
 .App-link {
-  color: #61dafb;
+  color: var(--color-cta); /* Use CTA color */
+  font-weight: 600;
+  transition: color 200ms ease;
+}
+
+.App-link:hover {
+  color: var(--color-secondary);
+  text-decoration: underline;
 }
 
 @keyframes App-logo-spin {
@@ -34,5 +44,33 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Example of a card-like element for the header */
+.header-card {
+  background: rgba(255, 255, 255, 0.05); /* Subtle glass effect */
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+  margin-top: var(--space-xl); /* Add some space from the top */
+}
+
+/* Make logo spin slower for a more premium feel */
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation-duration: 30s; /* Slower spin */
+  }
+}
+
+/* Responsive adjustments for App-header content */
+@media (max-width: 768px) {
+  .App-header {
+    font-size: calc(10px + 3vmin);
+  }
+  .header-card {
+    padding: var(--space-md);
   }
 }

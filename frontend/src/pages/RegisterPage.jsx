@@ -1,77 +1,70 @@
 import React, { useContext, useState } from 'react';
-import { TextField, Button, Typography, Box, Paper, LinearProgress, Divider, Alert } from '@mui/material';
+import { TextField, Button, Typography, Box, Paper, Divider, Link, alpha, CircularProgress } from '@mui/material';
 import { useForm } from 'react-hook-form';
-import { AuthContext } from '../App'; // Importar el contexto de autenticación
+import { AuthContext } from '../App';
 import GoogleIcon from '@mui/icons-material/Google';
-import { CheckCircle } from '@mui/icons-material';
 import { API_BASE_URL } from '../services/userService';
-import { handleAxiosError, showSuccess } from '../utils/alert';
+import { handleAxiosError } from '../utils/alert';
 
 const RegisterPage = () => {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
-  const { register: authRegister } = useContext(AuthContext);
+  const { register, handleSubmit, formState: { errors }, watch } = useForm();
+  const { register: registerUser } = useContext(AuthContext); // Assuming registerUser is the login function from context
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false); // New state for success message
 
   const password = watch('password');
-  const confirmPassword = watch('confirmPassword');
-
-  // Función para calcular la fuerza de la contraseña
-  const calculatePasswordStrength = (pwd) => {
-    if (!pwd) return 0;
-    let strength = 0;
-    
-    if (pwd.length >= 8) strength += 25;
-    if (pwd.match(/[a-z]/)) strength += 25;
-    if (pwd.match(/[A-Z]/)) strength += 25;
-    if (pwd.match(/[0-9]/)) strength += 25;
-    
-    return strength;
-  };
-
-  // Actualizar la fuerza de la contraseña cuando cambie
-  React.useEffect(() => {
-    setPasswordStrength(calculatePasswordStrength(password));
-  }, [password]);
 
   const onSubmit = async (data) => {
-    if (data.password !== data.confirmPassword) {
-      console.log('Passwords do not match');
-      return;
-    }
-    
-    console.log('Submitting registration with data:', data);
     setIsSubmitting(true);
     try {
-      console.log('Calling authRegister...');
-      await authRegister(data.name, data.email, data.password);
-      console.log('authRegister call successful');
-      showSuccess('¡Registro exitoso! Por favor, revisa tu correo para verificar tu cuenta.');
-      setRegistrationSuccess(true); // Set success state
+      // Assuming registerUser handles the registration logic
+      await registerUser(data.email, data.password, data.fullName); 
     } catch (error) {
-      // Handle registration error, e.g., display an alert
-      console.error("Registration error in onSubmit:", error);
-      handleAxiosError(error, 'Error en el registro. Por favor, inténtalo de nuevo.');
-      setRegistrationSuccess(false); // Ensure it's false on error
+      handleAxiosError(error, 'Error al registrar usuario.');
     } finally {
-      console.log('Executing finally block, setting isSubmitting to false');
       setIsSubmitting(false);
     }
   };
 
-  const getPasswordStrengthColor = () => {
-    if (passwordStrength <= 25) return '#f44336';
-    if (passwordStrength <= 50) return '#ff9800';
-    if (passwordStrength <= 75) return '#2196f3';
-    return '#4caf50';
+  // Button Styles based on Design System
+  const primaryButtonStyles = {
+    backgroundColor: 'var(--color-cta)', // Using CTA color as primary for action
+    color: 'var(--color-text)',
+    padding: '12px 24px', // Matches design system button padding
+    borderRadius: 'var(--border-radius-xl)', // Use design system token (was 16px)
+    fontWeight: 600,
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+    boxShadow: 'var(--shadow-md)', // Add shadow for depth
+    '&:hover': {
+      backgroundColor: 'var(--color-secondary)', // Using secondary for hover effect
+      opacity: 0.9,
+      transform: 'translateY(-1px)',
+      boxShadow: 'var(--shadow-lg)', // Enhance shadow on hover
+    },
+    '&:active': {
+      transform: 'translateY(0px)', // Reset transform on active
+    },
   };
 
-  const getPasswordStrengthText = () => {
-    if (passwordStrength <= 25) return 'Débil';
-    if (passwordStrength <= 50) return 'Regular';
-    if (passwordStrength <= 75) return 'Buena';
-    return 'Fuerte';
+  const secondaryButtonStyles = {
+    background: 'transparent',
+    color: 'var(--color-primary)',
+    border: `2px solid var(--color-primary)`,
+    padding: '12px 24px', // Matches design system button padding
+    borderRadius: 'var(--border-radius-xl)', // Use design system token (was 16px)
+    fontWeight: 600,
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+    boxShadow: 'none', // No shadow for secondary
+    '&:hover': {
+      color: 'var(--color-secondary)',
+      border: `2px solid var(--color-secondary)`,
+      opacity: 0.9,
+      transform: 'translateY(-1px)',
+    },
+    '&:active': {
+      transform: 'translateY(0px)',
+    },
   };
 
   return (
@@ -82,52 +75,28 @@ const RegisterPage = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 2,
-        // Background with glassmorphism effect
+        // Background with glassmorphism effect using design system colors
         background: `
-          linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(30, 144, 255, 0.1) 100%),
-          radial-gradient(circle at 20% 80%, rgba(76, 175, 80, 0.2), transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(30, 144, 255, 0.2), transparent 50%),
-          radial-gradient(circle at 40% 40%, rgba(138, 43, 226, 0.15), transparent 50%)
+          linear-gradient(135deg, ${alpha('var(--color-background)', 0.2)} 0%, ${alpha('var(--color-primary)', 0.1)} 100%),
+          radial-gradient(circle at 20% 80%, ${alpha('var(--color-cta)', 0.15)}, transparent 50%),
+          radial-gradient(circle at 80% 20%, ${alpha('var(--color-secondary)', 0.15)}, transparent 50%)
         `,
-        '&::before': {
-          content: '""',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'linear-gradient(135deg, #4caf50 0%, #2196f3 50%, #9c27b0 100%)',
-          opacity: 0.08,
-          zIndex: -2,
-        },
-        '&::after': {
-          content: '""',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: `
-            radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
-            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 70%)
-          `,
-          zIndex: -1,
-        },
+        // Add subtle animated background elements if desired, but keep it premium
       }}
     >
       <Paper
         elevation={0}
         sx={{
           padding: { xs: 3, sm: 4, md: 5 },
-          maxWidth: 480,
+          maxWidth: 440,
           width: '100%',
           margin: 'auto',
-          // Glassmorphism effect
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
-          backdropFilter: 'blur(25px)',
+          // Glassmorphism effect using design system tokens
+          background: 'var(--color-background)', // Use dark background
+          backdropFilter: 'blur(25px)', // Adjusted blur intensity
           WebkitBackdropFilter: 'blur(25px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.2)', // Subtle glass border
+          borderRadius: 'var(--border-radius-xl)', // Use design system token
           boxShadow: `
             0 8px 32px rgba(0, 0, 0, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.2),
@@ -135,29 +104,7 @@ const RegisterPage = () => {
           `,
           position: 'relative',
           overflow: 'hidden',
-          // Subtle animation
-          animation: 'fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-          '@keyframes fadeInUp': {
-            '0%': {
-              opacity: 0,
-              transform: 'translateY(30px)',
-            },
-            '100%': {
-              opacity: 1,
-              transform: 'translateY(0)',
-            },
-          },
-          // Inner glow effect
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
-          },
-          // Hover effect
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             boxShadow: `
               0 12px 40px rgba(0, 0, 0, 0.15),
@@ -165,7 +112,6 @@ const RegisterPage = () => {
               0 0 0 1px rgba(255, 255, 255, 0.1)
             `,
             transform: 'translateY(-2px)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           },
         }}
       >
@@ -181,15 +127,15 @@ const RegisterPage = () => {
             sx={{
               width: 64,
               height: 64,
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, #4caf50 0%, #2196f3 100%)',
+              borderRadius: 'var(--border-radius-xl)', // Use design system token
+              background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-cta) 100%)`, // Use primary and CTA colors
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(76, 175, 80, 0.4)',
+              boxShadow: '0 8px 24px rgba(147, 51, 234, 0.4)', // Shadow related to CTA color
               mb: 2,
               '&::before': {
-                content: '"👤➕"',
+                content: '"🔐"', // Placeholder icon, could be SVG later
                 fontSize: '28px',
               },
             }}
@@ -202,7 +148,7 @@ const RegisterPage = () => {
           sx={{ 
             mb: 1,
             textAlign: 'center',
-            background: 'linear-gradient(135deg, #4caf50 0%, #2196f3 100%)',
+            background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-cta) 100%)`, // Use primary and CTA colors
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -219,338 +165,219 @@ const RegisterPage = () => {
           sx={{ 
             mb: 4,
             textAlign: 'center',
-            color: 'rgba(0, 0, 0, 0.6)',
+            color: 'var(--color-text-muted)', // Use muted text color
             fontSize: '0.95rem',
           }}
         >
-          Únete a nosotros y comienza tu experiencia
+          Únete a nosotros, es rápido y fácil
         </Typography>
 
-        {registrationSuccess ? (
-          <Alert 
-            severity="success" 
-            icon={<CheckCircle fontSize="inherit" />} 
-            sx={{ mb: 3, borderRadius: '16px' }}
-          >
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              ¡Registro exitoso!
-            </Typography>
-            <Typography variant="body2">
-              Por favor, revisa tu correo electrónico para verificar tu cuenta.
-            </Typography>
-          </Alert>
-        ) : (
-          <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-            <TextField
-              {...register('name', { 
-                required: 'Nombre es requerido',
-                minLength: {
-                  value: 2,
-                  message: 'El nombre debe tener al menos 2 caracteres'
-                },
-                pattern: {
-                  value: /^[A-Za-zÀ-ÿ\s]+$/,
-                  message: 'El nombre solo puede contener letras'
-                }
-              })}
-              label="Nombre completo"
-              fullWidth
-              margin="normal"
-              error={!!errors.name}
-              helperText={errors.name?.message}
-              sx={{
-                mb: 2,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '& fieldset': {
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                  },
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                    '& fieldset': {
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                    },
-                  },
-                  '&.Mui-focused': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    '& fieldset': {
-                      border: '2px solid rgba(76, 175, 80, 0.5) !important',
-                    },
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  '&.Mui-focused': {
-                    color: '#4caf50',
-                  },
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'rgba(0, 0, 0, 0.87)',
-                  '&::placeholder': {
-                    color: 'rgba(0, 0, 0, 0.4)',
-                  },
-                },
-              }}
-            />
-
-            <TextField
-              {...register('email', { 
-                required: 'Email es requerido',
-                pattern: {
-                  value: /^\S+@\S+$/i,
-                  message: 'Email no válido'
-                }
-              })}
-              label="Correo electrónico"
-              type="email"
-              fullWidth
-              margin="normal"
-              error={!!errors.email}
-              helperText={errors.email?.message}
-              sx={{
-                mb: 2,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '& fieldset': {
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                  },
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                    '& fieldset': {
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                    },
-                  },
-                  '&.Mui-focused': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    '& fieldset': {
-                      border: '2px solid rgba(33, 150, 243, 0.5) !important',
-                    },
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  '&.Mui-focused': {
-                    color: '#2196f3',
-                  },
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'rgba(0, 0, 0, 0.87)',
-                  '&::placeholder': {
-                    color: 'rgba(0, 0, 0, 0.4)',
-                  },
-                },
-              }}
-            />
-
-            <TextField
-              {...register('password', { 
-                required: 'Contraseña es requerida',
-                minLength: {
-                  value: 6,
-                  message: 'La contraseña debe tener al menos 6 caracteres'
-                }
-              })}
-              label="Contraseña"
-              type="password"
-              fullWidth
-              margin="normal"
-              error={!!errors.password}
-              helperText={errors.password?.message || (password && `Seguridad: ${getPasswordStrengthText()}`)}
-              sx={{
-                mb: 1,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '& fieldset': {
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                  },
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                    '& fieldset': {
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                    },
-                  },
-                  '&.Mui-focused': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    '& fieldset': {
-                      border: '2px solid rgba(156, 39, 176, 0.5) !important',
-                    },
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  '&.Mui-focused': {
-                    color: '#9c27b0',
-                  },
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'rgba(0, 0, 0, 0.87)',
-                  '&::placeholder': {
-                    color: 'rgba(0, 0, 0, 0.4)',
-                  },
-                },
-              }}
-            />
-
-            {/* Password strength indicator */}
-            {password && (
-              <Box sx={{ mb: 2 }}>
-                <LinearProgress
-                  variant="determinate"
-                  value={passwordStrength}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                    '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
-                      backgroundColor: getPasswordStrengthColor(),
-                      transition: 'all 0.3s ease',
-                    },
-                  }}
-                />
-              </Box>
-            )}
-
-            <TextField
-              {...register('confirmPassword', {
-                required: 'Confirmar contraseña es requerida',
-                validate: (value) => value === password || 'Las contraseñas no coinciden',
-              })}
-              label="Confirmar contraseña"
-              type="password"
-              fullWidth
-              margin="normal"
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword?.message || (confirmPassword && password && confirmPassword === password && '✓ Las contraseñas coinciden')}
-              sx={{
-                mb: 3,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '& fieldset': {
-                    border: `1px solid ${confirmPassword && password && confirmPassword === password ? 'rgba(76, 175, 80, 0.4)' : 'rgba(255, 255, 255, 0.2)'}`,
-                  },
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                    '& fieldset': {
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                    },
-                  },
-                  '&.Mui-focused': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    '& fieldset': {
-                      border: '2px solid rgba(76, 175, 80, 0.5) !important',
-                    },
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  '&.Mui-focused': {
-                    color: '#4caf50',
-                  },
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'rgba(0, 0, 0, 0.87)',
-                  '&::placeholder': {
-                    color: 'rgba(0, 0, 0, 0.4)',
-                  },
-                },
-              }}
-            />
-
-            <Button 
-              type="submit" 
-              fullWidth
-              disabled={isSubmitting}
-              sx={{
-                mt: 2,
-                py: 1.5,
-                borderRadius: '16px',
-                fontSize: '1rem',
-                fontWeight: 600,
-                textTransform: 'none',
-                background: 'linear-gradient(135deg, #4caf50 0%, #2196f3 100%)',
-                color: 'white',
-                border: 'none',
-                boxShadow: '0 8px 24px rgba(76, 175, 80, 0.4)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: '-100%',
-                  width: '100%',
-                  height: '100%',
-                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
-                  transition: 'left 0.5s',
-                },
+        {/* Form */}
+        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+          <TextField
+            {...register('fullName', { required: 'Nombre completo es requerido' })}
+            label="Nombre Completo"
+            fullWidth
+            margin="normal"
+            error={!!errors.fullName}
+            helperText={errors.fullName?.message}
+            sx={{
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 'var(--border-radius-xl)', // Use design system token
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #45a049 0%, #1e88e5 100%)',
+                  background: 'rgba(255, 255, 255, 0.15)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 12px 32px rgba(76, 175, 80, 0.5)',
-                  '&::before': {
-                    left: '100%',
-                  },
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
                 },
-                '&:active': {
-                  transform: 'translateY(0px)',
+                '&.Mui-focused': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
                 },
-                '&:disabled': {
-                  background: 'rgba(0, 0, 0, 0.12)',
-                  color: 'rgba(0, 0, 0, 0.26)',
-                  boxShadow: 'none',
-                  transform: 'none',
+              },
+              '& .MuiInputLabel-root': {
+                color: 'var(--color-text-muted)', // Use muted text color
+                '&.Mui-focused': {
+                  color: 'var(--color-primary)', // Use primary color when focused
                 },
-              }}
-            >
-              {isSubmitting ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box
-                    sx={{
-                      width: 16,
-                      height: 16,
-                      border: '2px solid rgba(255, 255, 255, 0.3)',
-                      borderTop: '2px solid white',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite',
-                      '@keyframes spin': {
-                        '0%': { transform: 'rotate(0deg)' },
-                        '100%': { transform: 'rotate(360deg)' },
-                      },
-                    }}
-                  />
-                  Creando cuenta...
-                </Box>
-              ) : (
-                'Crear cuenta'
-              )}
-            </Button>
-          </Box>
-        )}
+              },
+              '& .MuiOutlinedInput-input': {
+                color: 'var(--color-text)', // Use primary text color
+                '&::placeholder': {
+                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
+                },
+              },
+            }}
+          />
+          <TextField
+            {...register('email', { 
+              required: 'Email es requerido',
+              pattern: {
+                value: /^\S+@\S+$/i,
+                message: 'Email no válido'
+              }
+            })}
+            label="Email"
+            fullWidth
+            margin="normal"
+            error={!!errors.email}
+            helperText={errors.email?.message}
+            sx={{
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 'var(--border-radius-xl)', // Use design system token
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
+                },
+                '&.Mui-focused': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'var(--color-text-muted)', // Use muted text color
+                '&.Mui-focused': {
+                  color: 'var(--color-primary)', // Use primary color when focused
+                },
+              },
+              '& .MuiOutlinedInput-input': {
+                color: 'var(--color-text)', // Use primary text color
+                '&::placeholder': {
+                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
+                },
+              },
+            }}
+          />
+
+          <TextField
+            {...register('password', { 
+              required: 'Contraseña es requerida',
+              minLength: {
+                value: 6,
+                message: 'La contraseña debe tener al menos 6 caracteres'
+              }
+            })}
+            label="Contraseña"
+            type="password"
+            fullWidth
+            margin="normal"
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            sx={{
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 'var(--border-radius-xl)', // Use design system token
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
+                },
+                '&.Mui-focused': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'var(--color-text-muted)', // Use muted text color
+                '&.Mui-focused': {
+                  color: 'var(--color-primary)', // Use primary color when focused
+                },
+              },
+              '& .MuiOutlinedInput-input': {
+                color: 'var(--color-text)', // Use primary text color
+                '&::placeholder': {
+                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
+                },
+              },
+            }}
+          />
+
+          <TextField
+            {...register('confirmPassword', { 
+              required: 'Confirmar contraseña es requerido',
+              validate: value => value === password || 'Las contraseñas no coinciden'
+            })}
+            label="Confirmar Contraseña"
+            type="password"
+            fullWidth
+            margin="normal"
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
+            sx={{
+              mb: 3,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 'var(--border-radius-xl)', // Use design system token
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
+                },
+                '&.Mui-focused': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'var(--color-text-muted)', // Use muted text color
+                '&.Mui-focused': {
+                  color: 'var(--color-primary)', // Use primary color when focused
+                },
+              },
+              '& .MuiOutlinedInput-input': {
+                color: 'var(--color-text)', // Use primary text color
+                '&::placeholder': {
+                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
+                },
+              },
+            }}
+          />
+
+          <Button 
+            type="submit" 
+            fullWidth
+            disabled={isSubmitting}
+            sx={{
+              ...primaryButtonStyles, // Apply primary button styles
+              mt: 2,
+              py: 1.5, // Vertical padding
+              fontSize: '1rem',
+              textTransform: 'none',
+              // Background gradient updated to use primary and CTA colors
+              background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-cta) 100%)`,
+              boxShadow: '0 8px 24px rgba(147, 51, 234, 0.4)', // Shadow related to CTA color
+            }}
+          >
+            {isSubmitting ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} sx={{ color: 'white' }} />
+                Creando cuenta...
+              </Box>
+            ) : (
+              'Crear Cuenta'
+            )}
+          </Button>
+        </Box>
 
         <Divider sx={{ my: 3, '&::before, &::after': { borderColor: 'rgba(255, 255, 255, 0.2)' } }}>
-          <Typography variant="caption" sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>O</Typography>
+          <Typography variant="caption" sx={{ color: 'var(--color-text-muted)' }}>O</Typography> {/* Use muted text color */}
         </Divider>
 
         <Button
@@ -560,20 +387,18 @@ const RegisterPage = () => {
           variant="outlined"
           startIcon={<GoogleIcon />}
           sx={{
-            py: 1.5,
-            borderRadius: '16px',
-            fontSize: '1rem',
-            fontWeight: 600,
+            ...secondaryButtonStyles, // Apply secondary button styles
+            py: 1.5, // Vertical padding
             textTransform: 'none',
-            borderColor: 'rgba(0, 0, 0, 0.23)',
-            color: 'rgba(0, 0, 0, 0.87)',
+            borderColor: 'var(--color-text-muted)', // Use muted text for border
+            color: 'var(--color-text)', // Use primary text color
+            background: 'transparent', // Ensure transparent background
             '&:hover': {
-              borderColor: '#4285F4',
-              backgroundColor: 'rgba(66, 133, 244, 0.04)',
+              borderColor: 'var(--color-secondary)', // Use secondary for hover border
+              backgroundColor: 'rgba(245, 191, 36, 0.08)', // Subtle hover background with secondary color
               transform: 'translateY(-2px)',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
             },
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           Registrarse con Google
@@ -584,19 +409,20 @@ const RegisterPage = () => {
           <Typography 
             variant="body2" 
             sx={{ 
-              color: 'rgba(0, 0, 0, 0.6)',
+              color: 'var(--color-text-muted)',
               '& a': {
-                color: '#2196f3',
+                color: 'var(--color-primary)', // Use primary color for links
                 textDecoration: 'none',
                 fontWeight: 500,
                 '&:hover': {
+                  color: 'var(--color-secondary)', // Use secondary color on hover
                   textDecoration: 'underline',
                 },
               },
             }}
           >
             ¿Ya tienes una cuenta?{' '}
-            <a href="/login">Inicia sesión aquí</a>
+            <Link href="/login">Inicia Sesión</Link>
           </Typography>
         </Box>
       </Paper>

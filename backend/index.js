@@ -38,9 +38,9 @@ const port = process.env.PORT || 3000;
 // =============================
 //
 const allowedOrigins = [
-  process.env.FRONTEND_URL,           // https://systemlex.com.co
-  "https://www.systemlex.com.co",     // versión con www
-  "https://systemlex.vercel.app",     // dominio vercel
+  process.env.FRONTEND_URL,           // https://menduzlegalgroup.vercel.app
+  "https://www.menduzlegalgroup.vercel.app",     // versión con www
+  "https://menduzlegalgroup.vercel.app",     // dominio vercel
 ];
 
 console.log("Activando CORS para:", allowedOrigins);

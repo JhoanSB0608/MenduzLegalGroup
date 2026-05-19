@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = 'https://api.systemlex.com.co'
+export const API_BASE_URL = 'https://menduzlegalgroup.onrender.com/'
 
 const API_URL = `${API_BASE_URL}/api/users`;
 const AUTH_URL = `${API_BASE_URL}/api/auth`;

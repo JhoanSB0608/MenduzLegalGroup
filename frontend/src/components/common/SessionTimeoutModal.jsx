@@ -24,30 +24,83 @@ const SessionTimeoutModal = ({ open, onLogout, onStay }) => {
     return () => clearTimeout(timerId);
   }, [open, countdown, onLogout]);
 
+  // Button Styles based on Design System
+  const primaryButtonStyles = {
+    backgroundColor: 'var(--color-cta)', // Using CTA color as primary for action
+    color: 'var(--color-text)',
+    padding: '12px 24px', // Matches design system button padding
+    borderRadius: 'var(--border-radius-md)', // Use design system token (was 2)
+    fontWeight: 600,
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+    boxShadow: 'var(--shadow-md)', // Add shadow for depth
+    '&:hover': {
+      backgroundColor: 'var(--color-secondary)', // Using secondary for hover effect
+      opacity: 0.9,
+      transform: 'translateY(-1px)',
+      boxShadow: 'var(--shadow-lg)', // Enhance shadow on hover
+    },
+    '&:active': {
+      transform: 'translateY(0px)', // Reset transform on active
+    },
+    '& .MuiButton-startIcon': { // Style for the icon
+      marginRight: 'var(--space-sm)',
+    },
+  };
+
+  const secondaryButtonStyles = {
+    background: 'transparent',
+    color: 'var(--color-primary)',
+    border: `2px solid var(--color-primary)`,
+    padding: '12px 24px', // Matches design system button padding
+    borderRadius: 'var(--border-radius-md)', // Use design system token (was 2)
+    fontWeight: 600,
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+    boxShadow: 'none', // No shadow for secondary
+    '&:hover': {
+      color: 'var(--color-secondary)',
+      border: `2px solid var(--color-secondary)`,
+      opacity: 0.9,
+      transform: 'translateY(-1px)',
+    },
+    '&:active': {
+      transform: 'translateY(0px)',
+    },
+     '& .MuiButton-startIcon': { // Style for the icon
+      marginRight: 'var(--space-sm)',
+    },
+  };
+
+
   return (
     <Dialog 
       open={open} 
       onClose={onStay}
       PaperProps={{
         sx: {
-          borderRadius: 3,
-          background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.background.paper, 0.8)} 100%)`,
-          backdropFilter: 'blur(20px)',
-          border: `1px solid ${alpha(theme.palette.divider, 0.2)}`
+          // Update modal styling based on design system
+          borderRadius: 'var(--border-radius-xl)', // Use design system token (was 16px)
+          background: 'var(--color-background)', // Use design system background color
+          // backdropFilter: 'blur(4px)', // Use design system blur value
+          backdropFilter: 'blur(10px)', // Adjusted for a more pronounced glass effect
+          border: '1px solid rgba(255, 255, 255, 0.1)', // Subtle border, adjust if design system specifies differently
+          boxShadow: 'var(--shadow-xl)', // Use design system shadow token
+          padding: 'var(--space-xl)', // Use design system token for padding (was 32px)
         }
       }}
     >
-      <DialogTitle>
+      <DialogTitle sx={{ p: 0, mb: 2 }}> {/* Adjust padding for title */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Warning sx={{ color: theme.palette.warning.main, fontSize: 32 }} />
-          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+          <Warning sx={{ color: 'var(--color-primary)', fontSize: 32 }} /> {/* Use primary color for warning icon */}
+          <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}> {/* Use bold weight */}
             ¿Sigues ahí?
           </Typography>
         </Box>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ p: 0, mb: 3 }}> {/* Adjust padding for content */}
         <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2, my: 2, textAlign: 'center' }}>
-          <Typography>
+          <Typography variant="body1" color="var(--color-text-muted)"> {/* Use body1 variant and muted text color */}
             Tu sesión está a punto de expirar por inactividad.
           </Typography>
           <Box sx={{ position: 'relative', display: 'inline-flex', my: 2 }}>
@@ -56,7 +109,7 @@ const SessionTimeoutModal = ({ open, onLogout, onStay }) => {
               value={(countdown / 30) * 100} 
               size={80}
               thickness={4}
-              sx={{ color: theme.palette.primary.main }}
+              sx={{ color: 'var(--color-primary)' }} // Use primary color for progress circle
             />
             <Box
               sx={{
@@ -70,7 +123,7 @@ const SessionTimeoutModal = ({ open, onLogout, onStay }) => {
                 justifyContent: 'center',
               }}
             >
-              <Typography variant="h4" component="div" color="text.primary" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}> {/* Use bold weight */}
                 {countdown}
               </Typography>
             </Box>
@@ -80,11 +133,11 @@ const SessionTimeoutModal = ({ open, onLogout, onStay }) => {
           </Typography>
         </Box>
       </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
-        <Button onClick={onLogout} color="secondary" sx={{ borderRadius: 2 }}>
+      <DialogActions sx={{ p: 0, justifyContent: 'space-between' }}> {/* Adjust padding for actions */}
+        <Button onClick={onLogout} sx={{ ...secondaryButtonStyles }}> {/* Apply secondary button styles */}
           Cerrar Sesión
         </Button>
-        <Button onClick={onStay} variant="contained" autoFocus sx={{ borderRadius: 2 }}>
+        <Button onClick={onStay} variant="contained" autoFocus sx={{ ...primaryButtonStyles }}> {/* Apply primary button styles */}
           Permanecer Conectado
         </Button>
       </DialogActions>

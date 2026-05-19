@@ -22,12 +22,14 @@ const GlassTextField = React.forwardRef(({ error, ...props }, ref) => {
       error={error}
       sx={{
         '& .MuiOutlinedInput-root': {
-          borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(10px)',
+          // Use design system border radius
+          borderRadius: 'var(--border-radius-md)', // Was 12px
+          background: 'rgba(255, 255, 255, 0.08)', // This might need adjustment based on design system palette/opacity
+          backdropFilter: 'blur(10px)', // Keep blur effect
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '& fieldset': {
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            // Use a more premium border, maybe slightly darker or colored
+            border: '1px solid rgba(255, 255, 255, 0.2)', // Adjust border opacity/color
           },
           '&:hover': {
             background: 'rgba(255, 255, 255, 0.12)',
@@ -39,7 +41,8 @@ const GlassTextField = React.forwardRef(({ error, ...props }, ref) => {
           '&.Mui-focused': {
             background: 'rgba(255, 255, 255, 0.15)',
             '& fieldset': {
-              border: `2px solid ${error ? theme.palette.error.main : alpha(theme.palette.primary.main, 0.5)} !important`,
+              // Use theme primary color for focus, but ensure it aligns with design system
+              border: `2px solid ${error ? theme.palette.error.main : 'var(--color-primary)'} !important`,
             },
           },
           '&.Mui-error': {
@@ -49,9 +52,10 @@ const GlassTextField = React.forwardRef(({ error, ...props }, ref) => {
           },
         },
         '& .MuiInputLabel-root': {
-          color: 'rgba(0, 0, 0, 0.6)',
+          // Label color might need adjustment for dark background
+          color: 'var(--color-text-muted)',
           '&.Mui-focused': {
-            color: error ? theme.palette.error.main : theme.palette.primary.main,
+            color: error ? theme.palette.error.main : 'var(--color-primary)',
           },
         },
         ...props.sx
@@ -65,18 +69,20 @@ const GlassSelect = ({ control, name, label, options, rules, error, ...props }) 
   const selectSx = {
     minWidth: 250,
     width: '100%',
-    borderRadius: '12px',
+    // Use design system border radius
+    borderRadius: 'var(--border-radius-md)', // Was 12px
     background: 'rgba(255, 255, 255, 0.08)',
     backdropFilter: 'blur(10px)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     '& .MuiOutlinedInput-notchedOutline': {
-      border: '1px solid rgba(255, 255, 255, 0.2)',
+      border: '1px solid rgba(255, 255, 255, 0.2)', // Adjust border opacity/color
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
       border: '1px solid rgba(255, 255, 255, 0.3)',
     },
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      border: `2px solid ${error ? theme.palette.error.main : alpha(theme.palette.primary.main, 0.5)} !important`,
+      // Use theme primary color for focus, but ensure it aligns with design system
+      border: `2px solid ${error ? theme.palette.error.main : 'var(--color-primary)'} !important`,
     },
     '&:hover': {
         background: 'rgba(255, 255, 255, 0.12)',
@@ -84,6 +90,21 @@ const GlassSelect = ({ control, name, label, options, rules, error, ...props }) 
     '&.Mui-focused': {
         background: 'rgba(255, 255, 255, 0.15)',
     },
+    // Style for the dropdown menu itself
+    '& .MuiDropdown-paper': { // Note: MuiDropdown-paper might not be a standard class, usually it's '.MuiPaper-root' inside the MenuList/Popover
+        borderRadius: 'var(--border-radius-lg)', // Use larger radius for menu
+        boxShadow: 'var(--shadow-lg)',
+        background: 'var(--color-background)', // Dark background for menu
+        color: 'var(--color-text)',
+        '& .MuiMenuItem-root': {
+            '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle hover for menu items
+            },
+            '&.Mui-selected': {
+                backgroundColor: 'rgba(245, 158, 11, 0.1)', // Example: Using a transparent primary color for selected item
+            }
+        }
+    }
   };
   return (
       <FormControl fullWidth error={!!error}>
@@ -153,6 +174,54 @@ const ArchiverInsolvenciaForm = ({ onSubmit, archiverEntryId, initialData, onUpl
         anexos: [], 
       },
     });
+  };
+
+  // Button Styles based on Design System
+  const primaryButtonStyles = {
+    backgroundColor: 'var(--color-cta)', // Using CTA color as primary for action
+    color: 'var(--color-text)',
+    padding: '12px 24px',
+    borderRadius: 'var(--border-radius-md)', // Use design system token
+    fontWeight: 600,
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+    boxShadow: 'var(--shadow-md)', // Add shadow for depth
+    '&:hover': {
+      backgroundColor: 'var(--color-secondary)', // Using secondary for hover effect
+      opacity: 0.9,
+      transform: 'translateY(-1px)',
+      boxShadow: 'var(--shadow-lg)', // Enhance shadow on hover
+    },
+    '&:active': {
+      transform: 'translateY(0px)', // Reset transform on active
+    },
+    '& .MuiButton-startIcon': { // Style for the icon
+      marginRight: 'var(--space-sm)',
+    },
+  };
+
+  const secondaryButtonStyles = {
+    background: 'transparent',
+    color: 'var(--color-primary)',
+    border: `2px solid var(--color-primary)`,
+    padding: '12px 24px',
+    borderRadius: 'var(--border-radius-md)', // Use design system token
+    fontWeight: 600,
+    transition: 'all 200ms ease',
+    cursor: 'pointer',
+    boxShadow: 'none', // No shadow for secondary
+    '&:hover': {
+      color: 'var(--color-secondary)',
+      border: `2px solid var(--color-secondary)`,
+      opacity: 0.9,
+      transform: 'translateY(-1px)',
+    },
+    '&:active': {
+      transform: 'translateY(0px)',
+    },
+     '& .MuiButton-startIcon': { // Style for the icon
+      marginRight: 'var(--space-sm)',
+    },
   };
 
   return (
