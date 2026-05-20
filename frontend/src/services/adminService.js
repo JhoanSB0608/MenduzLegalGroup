@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://menduzlegalgroup.onrender.com/api/admin';
+const API_URL = 'https://menduzlegalgroup.onrender.comapi/admin';
 
 // Helper para obtener el token y la configuración JSON
 const getConfig = (isJson = true) => {

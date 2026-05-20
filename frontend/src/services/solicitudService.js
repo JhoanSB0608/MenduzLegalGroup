@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { saveAs } from 'file-saver';
 
-const API_URL = 'https://menduzlegalgroup.onrender.com/api/solicitudes';
+const API_URL = 'https://menduzlegalgroup.onrender.comapi/solicitudes';
 
 const getToken = () => {
   const userInfo = localStorage.getItem('userInfo');
