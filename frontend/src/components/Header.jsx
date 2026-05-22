@@ -59,7 +59,7 @@ const Header = () => {
             },
           }}
         >
-          <img src="/logoPrincipal.png" alt="MenduzLegalGroup Logo" style={{ height: '50px', width: 'auto' }} />
+          <img src="/logoPrincipal.png" alt="MenduzLegalGroup Logo" style={{ height: '80px', width: 'auto' }} />
         </Box>
         
         <Stack direction="row" spacing={1} alignItems="center">

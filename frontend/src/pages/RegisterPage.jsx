@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { TextField, Button, Typography, Box, Paper, Divider, alpha, useTheme, Stack, Avatar, CircularProgress, Grid } from '@mui/material';
+import { TextField, Button, Typography, Box, Paper, Divider, alpha, useTheme, Stack, Avatar, CircularProgress } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { AuthContext } from '../App';
 import GoogleIcon from '@mui/icons-material/Google';
@@ -66,7 +66,7 @@ const RegisterPage = () => {
               Crear Cuenta
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-              Únete a la plataforma legal más avanzada del mercado
+              Únete a nosotros y comienza tu experiencia
             </Typography>
           </Box>
         </Stack>
@@ -92,8 +92,6 @@ const RegisterPage = () => {
               helperText={errors.email?.message}
             />
 
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   {...register('password', { 
                     required: 'Contraseña requerida',
@@ -105,8 +103,6 @@ const RegisterPage = () => {
                   error={!!errors.password}
                   helperText={errors.password?.message}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   {...register('confirmPassword', { 
                     required: 'Confirma tu contraseña',
@@ -118,8 +114,6 @@ const RegisterPage = () => {
                   error={!!errors.confirmPassword}
                   helperText={errors.confirmPassword?.message}
                 />
-              </Grid>
-            </Grid>
 
             <Button 
               type="submit" 
