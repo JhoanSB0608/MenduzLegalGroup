@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { AppBar, Toolbar, Button, Box, alpha, useTheme, Stack, Avatar, Typography } from '@mui/material';
+import { AppBar, Toolbar, Button, Box, alpha, useTheme, Stack, Avatar, Typography, IconButton } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { 
@@ -129,7 +129,8 @@ const Header = () => {
                 >
                   <LogoutIcon />
                 </IconButton>
-              </>
+              </Stack>
+            </>
           ) : (
             <Stack direction="row" spacing={2}>
               <Button 
