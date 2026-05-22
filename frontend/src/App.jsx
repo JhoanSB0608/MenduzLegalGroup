@@ -1,5 +1,8 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from './theme';
 import { Container } from '@mui/material';
 import Header from './components/Header';
 import LandingPage from './pages/LandingPage'; // Nuevo
@@ -30,9 +33,12 @@ const queryClient = new QueryClient();
 // El AuthProvider debe estar dentro de un Router para usar useNavigate
 const AuthWrapper = ({ children }) => (
   <Router>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>{children}</AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </Router>
 );
 

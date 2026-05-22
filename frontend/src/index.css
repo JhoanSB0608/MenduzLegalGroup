@@ -1,102 +1,34 @@
 body {
   margin: 0;
-  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--color-background);
-  color: var(--color-text);
-  line-height: 1.5; /* Default line height for readability */
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Global Transition for smooth interactive experience */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-/* Global CSS Variables */
-:root {
-  --color-primary: #F59E0B;
-  --color-secondary: #FBBF24;
-  --color-cta: #8B5CF6; /* Using suggested CTA color for now, can adjust if needed */
-  --color-background: #2c295e;
-  --color-text: #F8FAFC;
-  --color-text-muted: rgba(248, 250, 252, 0.7); /* Example muted text */
-
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
-
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-  --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
-
-  --border-radius-sm: 4px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
-  --border-radius-xl: 16px;
+/* Custom Scrollbar for Premium Feel */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-/* Global styles for common elements */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 700; /* Bold for headings */
-  color: var(--color-primary); /* Default heading color */
-  margin-bottom: var(--space-md);
+::-webkit-scrollbar-track {
+  background: #0B0F1A;
 }
 
-h1 { font-size: 2.5rem; /* Example sizes */ }
-h2 { font-size: 2rem; }
-h3 { font-size: 1.75rem; }
-
-p {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 400; /* Regular for body text */
-  margin-bottom: var(--space-md);
-  color: var(--color-text-muted); /* Slightly muted for contrast */
+::-webkit-scrollbar-thumb {
+  background: #1E40AF;
+  border-radius: 10px;
 }
 
-a {
-  color: var(--color-cta);
-  text-decoration: none;
-  transition: color 200ms ease;
+::-webkit-scrollbar-thumb:hover {
+  background: #3B82F6;
 }
 
-a:hover {
-  color: var(--color-secondary);
-  text-decoration: underline;
-}
-
-/* Basic Glassmorphism effect for body background or large containers */
-body {
-  /* Optional: Apply a subtle glass effect to the main body if needed */
-  /* backdrop-filter: blur(4px); */
-}
-
-/* Utility classes for spacing */
-.p-md { padding: var(--space-md); }
-.p-lg { padding: var(--space-lg); }
-.m-md { margin-bottom: var(--space-md); }
-.m-lg { margin-bottom: var(--space-lg); }
-.m-xl { margin-bottom: var(--space-xl); }
-
-/* Responsive adjustments can be added here */
-
-/* Prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-    transform: translateZ(0) !important;
-  }
+/* Selection highlight */
+::selection {
+  background: rgba(30, 64, 175, 0.3);
+  color: #fff;
 }

@@ -1,48 +1,55 @@
 import React, { useContext } from 'react';
-import { AppBar, Toolbar, Button, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { AppBar, Toolbar, Button, Box, alpha, useTheme, Stack, Avatar, Typography } from '@mui/material';
+import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../App';
+import { 
+  Logout as LogoutIcon, 
+  AdminPanelSettings as AdminIcon, 
+  AccountBalanceWallet as WalletIcon, 
+  AddCircleOutline as AddIcon,
+  Archive as ArchiveIcon
+} from '@mui/icons-material';
 
 const Header = () => {
   const { user, logout } = useContext(AuthContext);
+  const theme = useTheme();
+  const location = useLocation();
   const homePath = user ? '/admin' : '/';
+
+  const navItems = [
+    { label: 'Acreedores', path: '/acreedores', icon: WalletIcon, color: theme.palette.info.main },
+    { label: 'Nueva Solicitud', path: '/nueva-solicitud', icon: AddIcon, color: theme.palette.success.main },
+    { label: 'Archivador', path: '/archiver', icon: ArchiveIcon, color: theme.palette.warning.main },
+  ];
+
+  if (user?.isAdmin) {
+    navItems.push({ label: 'Admin', path: '/admin', icon: AdminIcon, color: theme.palette.primary.light });
+  }
 
   return (
     <AppBar 
       position="sticky" 
+      elevation={0}
       sx={{ 
         top: 0, 
         zIndex: 1100,
-        // Glassmorphism effect
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-        // Gradient overlay
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'linear-gradient(135deg, rgba(30, 144, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%)',
-          zIndex: -1,
-        },
+        background: alpha(theme.palette.background.paper, 0.6),
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        borderBottom: `1px solid ${alpha('#fff', 0.08)}`,
       }}
     >
       <Toolbar 
         sx={{ 
-          minHeight: { xs: '64px', sm: '70px' },
-          padding: { xs: '0 16px', sm: '0 24px' },
+          minHeight: { xs: '70px', sm: '80px' },
+          px: { xs: 2, sm: 4 },
+          justifyContent: 'space-between'
         }}
       >
         <Box
           component={Link}
           to={homePath}
           sx={{
-            flexGrow: 1,
             display: 'flex',
             alignItems: 'center',
             textDecoration: 'none',
@@ -52,274 +59,107 @@ const Header = () => {
             },
           }}
         >
-          <img src="/logoPrincipal.png" alt="MenduzLegalGroup Logo" style={{ height: '100px', marginRight: '8px' }} />
+          <img src="/logoPrincipal.png" alt="MenduzLegalGroup Logo" style={{ height: '50px', width: 'auto' }} />
         </Box>
         
-        {/* User indicator for smaller screens */}
-        {user && (
-          <Box sx={{ 
-            display: { xs: 'flex', md: 'none' },
-            alignItems: 'center',
-            marginRight: 2,
-            padding: '4px 12px',
-            borderRadius: '20px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            fontSize: '0.875rem',
-          }}>
-            {user.name || 'Usuario'}
-          </Box>
-        )}
-        
-        {/* Navigation buttons - always visible */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          gap: { xs: 0.5, sm: 1 },
-        }}>
+        <Stack direction="row" spacing={1} alignItems="center">
           {user ? (
             <>
-              {/* User name for larger screens */}
-              <Box sx={{ 
-                display: { xs: 'none', md: 'flex' },
-                alignItems: 'center',
-                marginRight: 2,
-                padding: '6px 16px',
-                borderRadius: '25px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-              }}>
-                👤 {user.name || 'Usuario'}
-              </Box>
+              <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' }, mr: 2 }}>
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Button 
+                      key={item.path}
+                      component={Link} 
+                      to={item.path}
+                      startIcon={<item.icon />}
+                      sx={{
+                        borderRadius: '12px',
+                        px: 2,
+                        py: 1,
+                        color: isActive ? '#fff' : alpha('#fff', 0.6),
+                        background: isActive ? alpha(item.color, 0.15) : 'transparent',
+                        border: `1px solid ${isActive ? alpha(item.color, 0.3) : 'transparent'}`,
+                        fontWeight: isActive ? 700 : 500,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          background: alpha(item.color, 0.2),
+                          color: '#fff',
+                          transform: 'translateY(-2px)',
+                        },
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  );
+                })}
+              </Stack>
 
-              <Button 
-                color="inherit" 
-                component={Link} 
-                to="/acreedores"
-                sx={{
-                  borderRadius: '12px',
-                  padding: { xs: '6px 8px', sm: '8px 16px' },
-                  margin: '0 2px',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  fontWeight: 500,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  },
-                  '&::before': {
-                    content: '"💳"',
-                    marginRight: { xs: 0, sm: '8px' },
-                    fontSize: { xs: '12px', sm: '14px' },
-                  },
-                }}
-              >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                  Acreedores
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{ 
+                  display: { xs: 'none', sm: 'flex' }, 
+                  alignItems: 'center', 
+                  gap: 1.5,
+                  p: '6px 16px',
+                  borderRadius: '100px',
+                  background: alpha('#fff', 0.05),
+                  border: `1px solid ${alpha('#fff', 0.1)}`,
+                }}>
+                  <Avatar sx={{ width: 28, height: 28, bgcolor: theme.palette.primary.main, fontSize: '0.875rem' }}>
+                    {user.name?.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: alpha('#fff', 0.9) }}>
+                    {user.name}
+                  </Typography>
                 </Box>
-              </Button>
 
-              <Button 
-                color="inherit" 
-                component={Link} 
-                to="/nueva-solicitud"
-                sx={{
-                  borderRadius: '12px',
-                  padding: { xs: '6px 8px', sm: '8px 16px' },
-                  margin: '0 2px',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  fontWeight: 500,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  background: 'rgba(76, 175, 80, 0.1)',
-                  border: '1px solid rgba(76, 175, 80, 0.2)',
-                  '&:hover': {
-                    background: 'rgba(76, 175, 80, 0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(76, 175, 80, 0.3)',
-                  },
-                  '&::before': {
-                    content: '"➕"',
-                    marginRight: { xs: 0, sm: '8px' },
-                    fontSize: { xs: '12px', sm: '14px' },
-                  },
-                }}
-              >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                    Nueva Solicitud
-                                  </Box>
-                                </Button>
-                  
-                                <Button 
-                                  color="inherit" 
-                                  component={Link} 
-                                  to="/archiver"
-                                  sx={{
-                                    borderRadius: '12px',
-                                    padding: { xs: '6px 8px', sm: '8px 16px' },
-                                    margin: '0 2px',
-                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                                    fontWeight: 500,
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    backdropFilter: 'blur(10px)',
-                                    WebkitBackdropFilter: 'blur(10px)',
-                                    background: 'rgba(255, 159, 0, 0.1)',
-                                    border: '1px solid rgba(255, 159, 0, 0.2)',
-                                    '&:hover': {
-                                      background: 'rgba(255, 159, 0, 0.2)',
-                                      transform: 'translateY(-2px)',
-                                      boxShadow: '0 4px 20px rgba(255, 159, 0, 0.3)',
-                                    },
-                                    '&::before': {
-                                      content: '"🗄️"',
-                                      marginRight: { xs: 0, sm: '8px' },
-                                      fontSize: { xs: '12px', sm: '14px' },
-                                    },
-                                  }}
-                                >
-                                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                    Archivador
-                                  </Box>
-                                </Button>
-                  
-                                {user.isAdmin && (                <Button 
-                  color="inherit" 
-                  component={Link} 
-                  to="/admin"
-                  sx={{
+                <IconButton 
+                  onClick={logout}
+                  sx={{ 
+                    color: theme.palette.error.light,
+                    background: alpha(theme.palette.error.main, 0.1),
                     borderRadius: '12px',
-                    padding: { xs: '6px 8px', sm: '8px 16px' },
-                    margin: '0 2px',
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    fontWeight: 500,
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                    background: 'rgba(138, 43, 226, 0.1)',
-                    border: '1px solid rgba(138, 43, 226, 0.2)',
                     '&:hover': {
-                      background: 'rgba(138, 43, 226, 0.2)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 20px rgba(138, 43, 226, 0.3)',
+                      background: alpha(theme.palette.error.main, 0.2),
+                      transform: 'rotate(15deg)',
                     },
-                    '&::before': {
-                      content: '"⚙️"',
-                      marginRight: { xs: 0, sm: '8px' },
-                      fontSize: { xs: '12px', sm: '14px' },
-                    },
+                    transition: 'all 0.3s ease',
                   }}
                 >
-                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                    Admin
-                  </Box>
-                </Button>
-              )}
-
-              <Button 
-                color="inherit" 
-                onClick={logout}
-                sx={{
-                  borderRadius: '12px',
-                  padding: { xs: '6px 8px', sm: '8px 16px' },
-                  margin: '0 2px',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  fontWeight: 500,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  background: 'rgba(244, 67, 54, 0.1)',
-                  border: '1px solid rgba(244, 67, 54, 0.2)',
-                  '&:hover': {
-                    background: 'rgba(244, 67, 54, 0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(244, 67, 54, 0.3)',
-                  },
-                  '&::before': {
-                    content: '"🚪"',
-                    marginRight: { xs: 0, sm: '8px' },
-                    fontSize: { xs: '12px', sm: '14px' },
-                  },
-                }}
-              >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                  Salir
-                </Box>
-              </Button>
-            </>
+                  <LogoutIcon />
+                </IconButton>
+              </>
           ) : (
-            <>
+            <Stack direction="row" spacing={2}>
               <Button 
-                color="inherit" 
                 component={Link} 
                 to="/login"
                 sx={{
-                  borderRadius: '12px',
-                  padding: '8px 16px',
-                  margin: '0 4px',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  },
-                  '&::before': {
-                    content: '"🔐"',
-                    marginRight: '8px',
-                    fontSize: '14px',
-                  },
+                  color: '#fff',
+                  fontWeight: 600,
+                  '&:hover': { background: alpha('#fff', 0.05) }
                 }}
               >
                 Iniciar Sesión
               </Button>
 
               <Button 
-                color="inherit" 
+                variant="contained"
                 component={Link} 
                 to="/register"
                 sx={{
                   borderRadius: '12px',
-                  padding: '8px 16px',
-                  margin: '0 4px',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  background: 'rgba(76, 175, 80, 0.1)',
-                  border: '1px solid rgba(76, 175, 80, 0.2)',
-                  '&:hover': {
-                    background: 'rgba(76, 175, 80, 0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 20px rgba(76, 175, 80, 0.3)',
-                  },
-                  '&::before': {
-                    content: '"👤➕"',
-                    marginRight: '8px',
-                    fontSize: '14px',
-                  },
+                  fontWeight: 700,
+                  px: 3,
+                  boxShadow: `0 4px 14px 0 ${alpha(theme.palette.primary.main, 0.39)}`,
                 }}
               >
-                Registrarse
+                Empezar
               </Button>
-            </>
+            </Stack>
           )}
-        </Box>
+        </Stack>
       </Toolbar>
     </AppBar>
   );

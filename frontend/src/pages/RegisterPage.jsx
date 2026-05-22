@@ -1,14 +1,17 @@
 import React, { useContext, useState } from 'react';
-import { TextField, Button, Typography, Box, Paper, Divider, Link, alpha, CircularProgress } from '@mui/material';
+import { TextField, Button, Typography, Box, Paper, Divider, alpha, useTheme, Stack, Avatar, CircularProgress, Grid } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { AuthContext } from '../App';
 import GoogleIcon from '@mui/icons-material/Google';
 import { API_BASE_URL } from '../services/userService';
 import { handleAxiosError } from '../utils/alert';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
+import { Link } from 'react-router-dom';
 
 const RegisterPage = () => {
+  const theme = useTheme();
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
-  const { register: registerUser } = useContext(AuthContext); // Assuming registerUser is the login function from context
+  const { register: registerUser } = useContext(AuthContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const password = watch('password');
@@ -16,8 +19,7 @@ const RegisterPage = () => {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      // Assuming registerUser handles the registration logic
-      await registerUser(data.email, data.password, data.fullName); 
+      await registerUser(data.fullName, data.email, data.password); 
     } catch (error) {
       handleAxiosError(error, 'Error al registrar usuario.');
     } finally {
@@ -25,359 +27,124 @@ const RegisterPage = () => {
     }
   };
 
-  // Button Styles based on Design System
-  const primaryButtonStyles = {
-    backgroundColor: 'var(--color-cta)', // Using CTA color as primary for action
-    color: 'var(--color-text)',
-    padding: '12px 24px', // Matches design system button padding
-    borderRadius: 'var(--border-radius-xl)', // Use design system token (was 16px)
-    fontWeight: 600,
-    transition: 'all 200ms ease',
-    cursor: 'pointer',
-    boxShadow: 'var(--shadow-md)', // Add shadow for depth
-    '&:hover': {
-      backgroundColor: 'var(--color-secondary)', // Using secondary for hover effect
-      opacity: 0.9,
-      transform: 'translateY(-1px)',
-      boxShadow: 'var(--shadow-lg)', // Enhance shadow on hover
-    },
-    '&:active': {
-      transform: 'translateY(0px)', // Reset transform on active
-    },
-  };
-
-  const secondaryButtonStyles = {
-    background: 'transparent',
-    color: 'var(--color-primary)',
-    border: `2px solid var(--color-primary)`,
-    padding: '12px 24px', // Matches design system button padding
-    borderRadius: 'var(--border-radius-xl)', // Use design system token (was 16px)
-    fontWeight: 600,
-    transition: 'all 200ms ease',
-    cursor: 'pointer',
-    boxShadow: 'none', // No shadow for secondary
-    '&:hover': {
-      color: 'var(--color-secondary)',
-      border: `2px solid var(--color-secondary)`,
-      opacity: 0.9,
-      transform: 'translateY(-1px)',
-    },
-    '&:active': {
-      transform: 'translateY(0px)',
-    },
-  };
-
   return (
     <Box 
       sx={{ 
-        minHeight: '100vh',
+        minHeight: '80vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 2,
-        // Background with glassmorphism effect using design system colors
-        background: `
-          linear-gradient(135deg, ${alpha('#0F172A', 0.2)} 0%, ${alpha('#F59E0B', 0.1)} 100%),
-          radial-gradient(circle at 20% 80%, ${alpha('#8B5CF6', 0.15)}, transparent 50%),
-          radial-gradient(circle at 80% 20%, ${alpha('#FBBF24', 0.15)}, transparent 50%)
-        `,
-        // Add subtle animated background elements if desired, but keep it premium
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          padding: { xs: 3, sm: 4, md: 5 },
-          maxWidth: 440,
+          padding: { xs: 4, sm: 6 },
+          maxWidth: 480,
           width: '100%',
-          margin: 'auto',
-          // Glassmorphism effect using design system tokens
-          background: 'var(--color-background)', // Use dark background
-          backdropFilter: 'blur(25px)', // Adjusted blur intensity
-          WebkitBackdropFilter: 'blur(25px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)', // Subtle glass border
-          borderRadius: 'var(--border-radius-xl)', // Use design system token
-          boxShadow: `
-            0 8px 32px rgba(0, 0, 0, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2),
-            0 0 0 1px rgba(255, 255, 255, 0.05)
-          `,
-          position: 'relative',
-          overflow: 'hidden',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            boxShadow: `
-              0 12px 40px rgba(0, 0, 0, 0.15),
-              inset 0 1px 0 rgba(255, 255, 255, 0.3),
-              0 0 0 1px rgba(255, 255, 255, 0.1)
-            `,
-            transform: 'translateY(-2px)',
-          },
+          background: `linear-gradient(135deg, ${alpha('#fff', 0.05)} 0%, ${alpha('#fff', 0.02)} 100%)`,
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '24px',
+          boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4)',
         }}
       >
-        {/* Logo/Icon */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            mb: 3,
-          }}
-        >
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: 'var(--border-radius-xl)', // Use design system token
-              background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-cta) 100%)`, // Use primary and CTA colors
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(147, 51, 234, 0.4)', // Shadow related to CTA color
-              mb: 2,
-              '&::before': {
-                content: '"🔐"', // Placeholder icon, could be SVG later
-                fontSize: '28px',
-              },
-            }}
-          />
-        </Box>
-
-        {/* Title */}
-        <Typography 
-          variant="h4" 
-          sx={{ 
-            mb: 1,
-            textAlign: 'center',
-            background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-cta) 100%)`, // Use primary and CTA colors
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            fontWeight: 700,
-            fontSize: { xs: '1.5rem', sm: '2rem' },
-          }}
-        >
-          Crear Cuenta
-        </Typography>
-
-        {/* Subtitle */}
-        <Typography 
-          variant="body1" 
-          sx={{ 
-            mb: 4,
-            textAlign: 'center',
-            color: 'var(--color-text-muted)', // Use muted text color
-            fontSize: '0.95rem',
-          }}
-        >
-          Únete a nosotros, es rápido y fácil
-        </Typography>
-
-        {/* Form */}
-        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <TextField
-            {...register('fullName', { required: 'Nombre completo es requerido' })}
-            label="Nombre Completo"
-            fullWidth
-            margin="normal"
-            error={!!errors.fullName}
-            helperText={errors.fullName?.message}
-            sx={{
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 'var(--border-radius-xl)', // Use design system token
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
-                },
-                '&.Mui-focused': {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: 'var(--color-text-muted)', // Use muted text color
-                '&.Mui-focused': {
-                  color: 'var(--color-primary)', // Use primary color when focused
-                },
-              },
-              '& .MuiOutlinedInput-input': {
-                color: 'var(--color-text)', // Use primary text color
-                '&::placeholder': {
-                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
-                },
-              },
-            }}
-          />
-          <TextField
-            {...register('email', { 
-              required: 'Email es requerido',
-              pattern: {
-                value: /^\S+@\S+$/i,
-                message: 'Email no válido'
-              }
-            })}
-            label="Email"
-            fullWidth
-            margin="normal"
-            error={!!errors.email}
-            helperText={errors.email?.message}
-            sx={{
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 'var(--border-radius-xl)', // Use design system token
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
-                },
-                '&.Mui-focused': {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: 'var(--color-text-muted)', // Use muted text color
-                '&.Mui-focused': {
-                  color: 'var(--color-primary)', // Use primary color when focused
-                },
-              },
-              '& .MuiOutlinedInput-input': {
-                color: 'var(--color-text)', // Use primary text color
-                '&::placeholder': {
-                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
-                },
-              },
-            }}
-          />
-
-          <TextField
-            {...register('password', { 
-              required: 'Contraseña es requerida',
-              minLength: {
-                value: 6,
-                message: 'La contraseña debe tener al menos 6 caracteres'
-              }
-            })}
-            label="Contraseña"
-            type="password"
-            fullWidth
-            margin="normal"
-            error={!!errors.password}
-            helperText={errors.password?.message}
-            sx={{
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 'var(--border-radius-xl)', // Use design system token
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
-                },
-                '&.Mui-focused': {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: 'var(--color-text-muted)', // Use muted text color
-                '&.Mui-focused': {
-                  color: 'var(--color-primary)', // Use primary color when focused
-                },
-              },
-              '& .MuiOutlinedInput-input': {
-                color: 'var(--color-text)', // Use primary text color
-                '&::placeholder': {
-                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
-                },
-              },
-            }}
-          />
-
-          <TextField
-            {...register('confirmPassword', { 
-              required: 'Confirmar contraseña es requerido',
-              validate: value => value === password || 'Las contraseñas no coinciden'
-            })}
-            label="Confirmar Contraseña"
-            type="password"
-            fullWidth
-            margin="normal"
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
-            sx={{
-              mb: 3,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 'var(--border-radius-xl)', // Use design system token
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                  '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
-                },
-                '&.Mui-focused': {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: 'var(--color-text-muted)', // Use muted text color
-                '&.Mui-focused': {
-                  color: 'var(--color-primary)', // Use primary color when focused
-                },
-              },
-              '& .MuiOutlinedInput-input': {
-                color: 'var(--color-text)', // Use primary text color
-                '&::placeholder': {
-                  color: 'var(--color-text-muted)', // Use muted text color for placeholder
-                },
-              },
-            }}
-          />
-
-          <Button 
-            type="submit" 
-            fullWidth
-            disabled={isSubmitting}
-            sx={{
-              ...primaryButtonStyles, // Apply primary button styles
-              mt: 2,
-              py: 1.5, // Vertical padding
-              fontSize: '1rem',
-              textTransform: 'none',
-              // Background gradient updated to use primary and CTA colors
-              background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-cta) 100%)`,
-              boxShadow: '0 8px 24px rgba(147, 51, 234, 0.4)', // Shadow related to CTA color
+        <Stack spacing={3} alignItems="center" sx={{ mb: 4 }}>
+          <Avatar 
+            sx={{ 
+              width: 60, 
+              height: 60, 
+              bgcolor: alpha(theme.palette.secondary.main, 0.1),
+              color: theme.palette.secondary.main,
+              border: `2px solid ${alpha(theme.palette.secondary.main, 0.2)}`
             }}
           >
-            {isSubmitting ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} sx={{ color: 'white' }} />
-                Creando cuenta...
-              </Box>
-            ) : (
-              'Crear Cuenta'
-            )}
-          </Button>
-        </Box>
+            <PersonAddOutlinedIcon sx={{ fontSize: 30 }} />
+          </Avatar>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+              Crear Cuenta
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+              Únete a la plataforma legal más avanzada del mercado
+            </Typography>
+          </Box>
+        </Stack>
 
-        <Divider sx={{ my: 3, '&::before, &::after': { borderColor: 'rgba(255, 255, 255, 0.2)' } }}>
-          <Typography variant="caption" sx={{ color: 'var(--color-text-muted)' }}>O</Typography> {/* Use muted text color */}
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={2}>
+            <TextField
+              {...register('fullName', { required: 'Nombre completo es requerido' })}
+              label="Nombre Completo"
+              fullWidth
+              error={!!errors.fullName}
+              helperText={errors.fullName?.message}
+            />
+
+            <TextField
+              {...register('email', { 
+                required: 'Email es requerido',
+                pattern: { value: /^\S+@\S+$/i, message: 'Email no válido' }
+              })}
+              label="Correo electrónico"
+              fullWidth
+              error={!!errors.email}
+              helperText={errors.email?.message}
+            />
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  {...register('password', { 
+                    required: 'Contraseña requerida',
+                    minLength: { value: 6, message: 'Mínimo 6 caracteres' }
+                  })}
+                  label="Contraseña"
+                  type="password"
+                  fullWidth
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  {...register('confirmPassword', { 
+                    required: 'Confirma tu contraseña',
+                    validate: value => value === password || 'No coinciden'
+                  })}
+                  label="Confirmar"
+                  type="password"
+                  fullWidth
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword?.message}
+                />
+              </Grid>
+            </Grid>
+
+            <Button 
+              type="submit" 
+              variant="contained"
+              fullWidth
+              size="large"
+              disabled={isSubmitting}
+              sx={{ 
+                mt: 2,
+                py: 1.8, 
+                fontSize: '1rem',
+                background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+                boxShadow: `0 8px 24px ${alpha(theme.palette.secondary.main, 0.3)}`,
+                '&:hover': {
+                  background: `linear-gradient(135deg, ${theme.palette.secondary.light} 0%, ${theme.palette.secondary.main} 100%)`,
+                }
+              }}
+            >
+              {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Registrarme'}
+            </Button>
+          </Stack>
+        </form>
+
+        <Divider sx={{ my: 4 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>O REGÍSTRATE CON</Typography>
         </Divider>
 
         <Button
@@ -387,42 +154,37 @@ const RegisterPage = () => {
           variant="outlined"
           startIcon={<GoogleIcon />}
           sx={{
-            ...secondaryButtonStyles, // Apply secondary button styles
-            py: 1.5, // Vertical padding
-            textTransform: 'none',
-            borderColor: 'var(--color-text-muted)', // Use muted text for border
-            color: 'var(--color-text)', // Use primary text color
-            background: 'transparent', // Ensure transparent background
+            py: 1.5,
+            borderRadius: '12px',
+            borderColor: 'rgba(255,255,255,0.1)',
+            color: '#fff',
             '&:hover': {
-              borderColor: 'var(--color-secondary)', // Use secondary for hover border
-              backgroundColor: 'rgba(245, 191, 36, 0.08)', // Subtle hover background with secondary color
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-            },
+              borderColor: theme.palette.secondary.main,
+              background: alpha(theme.palette.secondary.main, 0.05),
+            }
           }}
         >
-          Registrarse con Google
+          Google Cloud Register
         </Button>
 
-        {/* Footer links */}
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--color-text-muted)',
-              '& a': {
-                color: 'var(--color-primary)', // Use primary color for links
-                textDecoration: 'none',
-                fontWeight: 500,
-                '&:hover': {
-                  color: 'var(--color-secondary)', // Use secondary color on hover
-                  textDecoration: 'underline',
-                },
-              },
-            }}
-          >
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Typography variant="body2" color="text.secondary">
             ¿Ya tienes una cuenta?{' '}
-            <Link href="/login">Inicia Sesión</Link>
+            <Button 
+              component={Link} 
+              to="/login" 
+              sx={{ 
+                fontWeight: 700, 
+                color: theme.palette.secondary.light,
+                p: 0,
+                minWidth: 'auto',
+                ml: 0.5,
+                textDecoration: 'none',
+                '&:hover': { background: 'none', textDecoration: 'underline' }
+              }}
+            >
+              Inicia Sesión
+            </Button>
           </Typography>
         </Box>
       </Paper>
