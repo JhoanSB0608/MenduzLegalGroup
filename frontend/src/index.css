@@ -20,7 +20,7 @@ code {
   --color-primary: #F59E0B;
   --color-secondary: #FBBF24;
   --color-cta: #8B5CF6; /* Using suggested CTA color for now, can adjust if needed */
-  --color-background: #0F172A;
+  --color-background: #cc95ff;
   --color-text: #F8FAFC;
   --color-text-muted: rgba(248, 250, 252, 0.7); /* Example muted text */
 
