@@ -17,13 +17,21 @@ const RegisterPage = () => {
   const password = watch('password');
 
   const onSubmit = async (data) => {
+    
     setIsSubmitting(true);
     try {
-      await registerUser(data.fullName, data.email, data.password); 
+      const result = await registerUser(data.fullName, data.email, data.password);
+      console.log('[RegisterPage] Registro exitoso. Respuesta:', result);
     } catch (error) {
+      console.error('[RegisterPage] Error detectado en el bloque catch:', error);
+      if (error.response) {
+        console.error('[RegisterPage] Respuesta del servidor con error:', error.response.data);
+        console.error('[RegisterPage] Status del error:', error.response.status);
+      }
       handleAxiosError(error, 'Error al registrar usuario.');
     } finally {
       setIsSubmitting(false);
+      console.log('[RegisterPage] Finalizado intento de registro.');
     }
   };
 

@@ -15,13 +15,13 @@ const sendVerificationEmail = async (user) => {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
-  const imageUrl = `https://i.imgur.com/atITK1R.png`;
+  const imageUrl = `https://i.postimg.cc/MKw348dD/logo-Principal.png`;
   const verificationLink = `${backendUrl}/api/users/verify/${user.verificationToken}`;
 
   const mailOptions = {
-    from: "SystemLex <no-reply@systemlex.com.co>",
+    from: "MenduzLegalGroup <no-reply@menduz.com.co>",
     to: user.email,
-    subject: 'Verifica tu correo electrónico - SystemLex',
+    subject: 'Verifica tu correo electrónico - MenduzLegalGroup',
     html: `
       <!DOCTYPE html>
       <html lang="es">
@@ -30,19 +30,19 @@ const sendVerificationEmail = async (user) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Verificación de Cuenta</title>
       </head>
-      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0B57A0 0%, #1e88e5 50%, #64b5f6 100%); min-height: 100vh;">
+      <body style="margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0B0F1A; background-image: linear-gradient(135deg, #0F172A 0%, #1E40AF 100%); min-height: 100vh;">
         
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0; padding: 40px 20px;">
           <tr>
             <td align="center">
               
-              <!-- Contenedor principal con efecto glassmorphism -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; width: 100%; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px 0 rgba(11, 87, 160, 0.37); overflow: hidden;">
+              <!-- Contenedor principal con efecto glassmorphism premium -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; width: 100%; background: rgba(22, 27, 34, 0.9); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5); overflow: hidden;">
                 
-                <!-- Header con logo -->
+                <!-- Header con logo y acento dorado -->
                 <tr>
-                  <td align="center" style="padding: 40px 40px 20px 40px; background: rgba(255, 255, 255, 0.1);">
-                    <img src="${imageUrl}" alt="SystemLex Logo" title="SystemLex Logo" style="max-width: 180px; height: auto; display: block; margin: 0 auto; font-family: sans-serif; color: #ffffff; font-size: 16px; font-weight: bold;" />
+                  <td align="center" style="padding: 40px 40px 20px 40px; border-bottom: 2px solid #D97706;">
+                    <img src="${imageUrl}" alt="MenduzLegalGroup Logo" title="MenduzLegalGroup Logo" style="max-width: 180px; height: auto; display: block; margin: 0 auto; font-family: sans-serif; color: #ffffff; font-size: 16px; font-weight: bold;" />
                   </td>
                 </tr>
                 
@@ -51,28 +51,28 @@ const sendVerificationEmail = async (user) => {
                   <td style="padding: 40px;">
                     
                     <!-- Título -->
-                    <h1 style="margin: 0 0 20px 0; font-size: 28px; font-weight: 700; color: #ffffff; text-align: center; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                      ¡Bienvenido a SystemLex!
+                    <h1 style="margin: 0 0 20px 0; font-size: 28px; font-weight: 800; color: #ffffff; text-align: center; letter-spacing: -0.02em;">
+                      ¡Bienvenido a MenduzLegalGroup!
                     </h1>
                     
                     <!-- Saludo -->
                     <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #ffffff; text-align: center;">
-                      Hola <strong>${user.name}</strong>,
+                      Hola <strong style="color: #D97706;">${user.name}</strong>,
                     </p>
                     
                     <!-- Mensaje principal -->
-                    <p style="margin: 0 0 30px 0; font-size: 15px; line-height: 1.7; color: #f5f5f5; text-align: center;">
-                      Gracias por registrarte en nuestra plataforma. Para completar tu registro y comenzar a disfrutar de todos nuestros servicios, necesitamos verificar tu dirección de correo electrónico.
+                    <p style="margin: 0 0 30px 0; font-size: 15px; line-height: 1.7; color: #94A3B8; text-align: center;">
+                      Gracias por registrarte en nuestra plataforma. Para activar tu cuenta corporativa y acceder a todas las funcionalidades, confirma tu dirección de correo electrónico a continuación.
                     </p>
                     
-                    <!-- Botón de verificación con glassmorphism -->
+                    <!-- Botón de verificación Premium -->
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td align="center" style="padding: 20px 0;">
                           <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                             <tr>
-                              <td align="center" style="background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 2px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 15px 0 rgba(11, 87, 160, 0.4); transition: all 0.3s ease;">
-                                <a href="${verificationLink}" target="_blank" style="display: inline-block; padding: 16px 48px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">
+                              <td align="center" style="background: linear-gradient(135deg, #1E40AF 0%, #0F172A 100%); border-radius: 12px; box-shadow: 0 8px 24px 0 rgba(30, 64, 175, 0.4);">
+                                <a href="${verificationLink}" target="_blank" style="display: inline-block; padding: 18px 54px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">
                                   Verificar mi cuenta
                                 </a>
                               </td>
@@ -83,26 +83,26 @@ const sendVerificationEmail = async (user) => {
                     </table>
                     
                     <!-- Info adicional -->
-                    <div style="margin: 30px 0 0 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.2);">
-                      <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.6; color: #ffffff; text-align: center;">
+                    <div style="margin: 30px 0 0 0; padding: 20px; background: rgba(255, 255, 255, 0.03); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                      <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.6; color: #F59E0B; text-align: center;">
                         ⏱️ <strong>Este enlace expirará en 1 hora</strong>
                       </p>
-                      <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #f0f0f0; text-align: center;">
-                        Por tu seguridad, te recomendamos verificar tu cuenta lo antes posible.
+                      <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #94A3B8; text-align: center;">
+                        Por razones de seguridad institucional, te recomendamos completar este paso de inmediato.
                       </p>
                     </div>
                     
                   </td>
                 </tr>
                 
-                <!-- Footer -->
+                <!-- Footer Corporativo -->
                 <tr>
-                  <td style="padding: 30px 40px; background: rgba(11, 87, 160, 0.3); border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                    <p style="margin: 0 0 15px 0; font-size: 13px; line-height: 1.6; color: #e3f2fd; text-align: center;">
-                      Si no te registraste en SystemLex, puedes ignorar este correo de forma segura.
+                  <td style="padding: 30px 40px; background: rgba(15, 23, 42, 0.8); border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                    <p style="margin: 0 0 15px 0; font-size: 13px; line-height: 1.6; color: #64748B; text-align: center;">
+                      Si no has solicitado este registro, puedes descartar este mensaje de forma segura.
                     </p>
-                    <p style="margin: 0; font-size: 12px; color: #b3d9ff; text-align: center;">
-                      © ${new Date().getFullYear()} SystemLex. Todos los derechos reservados.
+                    <p style="margin: 0; font-size: 12px; color: #475569; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                      © ${new Date().getFullYear()} MenduzLegalGroup. Servicios Jurídicos Enterprise.
                     </p>
                   </td>
                 </tr>
