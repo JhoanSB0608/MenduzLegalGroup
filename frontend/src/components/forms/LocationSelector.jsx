@@ -185,37 +185,36 @@ const LocationSelector = ({ departmentLabel, cityLabel, countryLabel, control, e
   const selectSx = {
     minWidth: 250,
     width: '100%',
-    borderRadius: '12px',
-    background: 'rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(10px)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    '& .MuiOutlinedInput-notchedOutline': {
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-    },
-    '&:hover .MuiOutlinedInput-notchedOutline': {
-      border: '1px solid rgba(255, 255, 255, 0.3)',
-    },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      border: `2px solid ${alpha(theme.palette.primary.main, 0.5)} !important`,
-    },
-    '&:hover': {
-        background: 'rgba(255, 255, 255, 0.12)',
-    },
-    '&.Mui-focused': {
-        background: 'rgba(255, 255, 255, 0.15)',
-    },
   };
 
   const formControlSx = {
     minWidth: 120,
     width: '100%',
-    '& .MuiInputLabel-root': {
-      color: 'rgba(0, 0, 0, 0.6)',
-      '&.Mui-focused': {
-        color: theme.palette.primary.main,
+  }
+
+  const menuProps = {
+    PaperProps: {
+      sx: {
+        backgroundColor: alpha(theme.palette.background.paper, 0.9),
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${alpha('#fff', 0.1)}`,
+        borderRadius: '12px',
+        maxHeight: 250,
+        '& .MuiMenuItem-root': {
+          padding: '10px 16px',
+          '&:hover': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          },
+          '&.Mui-selected': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.2),
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.3),
+            },
+          },
+        },
       },
     },
-  }
+  };
 
   return (
     <>
@@ -235,14 +234,7 @@ const LocationSelector = ({ departmentLabel, cityLabel, countryLabel, control, e
                   label={countryLabel || "País"}
                   sx={selectSx}
                   autoWidth
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        backgroundColor: '#ffffff',
-                        height: 250,
-                      },
-                    },
-                  }}
+                  MenuProps={menuProps}
                 >
                   {countries.map(country => (
                     <MenuItem key={country.value} value={country.value}>{country.label}</MenuItem>
@@ -271,14 +263,7 @@ const LocationSelector = ({ departmentLabel, cityLabel, countryLabel, control, e
                   disabled={showCountry && selectedCountry !== 'Colombia'}
                   sx={selectSx}
                   autoWidth
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        backgroundColor: '#ffffff',
-                        height: 250,
-                      },
-                    },
-                  }}
+                  MenuProps={menuProps}
                 >
                   {colombianDepartments.map(dep => (
                     <MenuItem key={dep.value} value={dep.value}>{dep.label}</MenuItem>
@@ -307,14 +292,7 @@ const LocationSelector = ({ departmentLabel, cityLabel, countryLabel, control, e
                   disabled={!selectedDepartment}
                   sx={selectSx}
                   autoWidth
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        backgroundColor: '#ffffff',
-                        height: 250,
-                      },
-                    },
-                  }}
+                  MenuProps={menuProps}
                 >
                   {getCitiesByDepartment(selectedDepartment).map(city => (
                     <MenuItem key={city.value} value={city.value}>{city.label}</MenuItem>

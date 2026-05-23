@@ -69,7 +69,6 @@ const GlassCard = ({ children, sx = {}, hover = true, ...props }) => (
 );
 
 const GlassTextField = React.forwardRef(({ error, helperText, ...props }, ref) => {
-  const theme = useTheme();
   return (
     <TextField
       {...props}
@@ -78,18 +77,6 @@ const GlassTextField = React.forwardRef(({ error, helperText, ...props }, ref) =
       helperText={helperText}
       variant="outlined"
       sx={{
-        '& .MuiOutlinedInput-root': {
-          borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(10px)',
-          '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.2)' },
-          '&:hover fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
-          '&.Mui-focused fieldset': { border: `2px solid ${error ? theme.palette.error.main : alpha(theme.palette.primary.main, 0.5)} !important` },
-        },
-        '& .MuiInputLabel-root': {
-          color: 'rgba(0, 0, 0, 0.6)',
-          '&.Mui-focused': { color: error ? theme.palette.error.main : theme.palette.primary.main },
-        },
         ...props.sx
       }}
     />
@@ -97,7 +84,6 @@ const GlassTextField = React.forwardRef(({ error, helperText, ...props }, ref) =
 });
 
 const GlassSelect = ({ control, name, label, options, rules, error, ...props }) => {
-    const theme = useTheme();
     return (
         <FormControl fullWidth error={!!error}>
             <InputLabel>{label}</InputLabel>
@@ -112,12 +98,7 @@ const GlassSelect = ({ control, name, label, options, rules, error, ...props }) 
                         label={label}
                         sx={{
                             minWidth: 300,
-                            borderRadius: '12px',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            backdropFilter: 'blur(10px)',
-                            '.MuiOutlinedInput-notchedOutline': { border: '1px solid rgba(255, 255, 255, 0.2)' },
-                            '&:hover .MuiOutlinedInput-notchedOutline': { border: '1px solid rgba(255, 255, 255, 0.3)' },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { border: `2px solid ${error ? theme.palette.error.main : alpha(theme.palette.primary.main, 0.5)} !important` },
+                            ...props.sx
                         }}
                         {...props}
                     >

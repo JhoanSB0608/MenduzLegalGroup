@@ -85,47 +85,13 @@ const GlassCard = ({ children, sx = {}, hover = true, ...props }) => {
 
 // Custom Input Field with Glassmorphism
 const GlassTextField = React.forwardRef(({ error, ...props }, ref) => {
-  const theme = useTheme();
-  
   return (
     <TextField
       {...props}
       inputRef={ref}
       error={error}
+      variant="outlined"
       sx={{
-        '& .MuiOutlinedInput-root': {
-          borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(10px)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '& fieldset': {
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-          },
-          '&:hover': {
-            background: 'rgba(255, 255, 255, 0.12)',
-            transform: 'translateY(-1px)',
-            '& fieldset': {
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-            },
-          },
-          '&.Mui-focused': {
-            background: 'rgba(255, 255, 255, 0.15)',
-            '& fieldset': {
-              border: `2px solid ${error ? theme.palette.error.main : alpha(theme.palette.primary.main, 0.5)} !important`,
-            },
-          },
-          '&.Mui-error': {
-            '& fieldset': {
-              border: `1px solid ${alpha(theme.palette.error.main, 0.5)}`,
-            },
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: 'rgba(0, 0, 0, 0.6)',
-          '&.Mui-focused': {
-            color: error ? theme.palette.error.main : theme.palette.primary.main,
-          },
-        },
         ...props.sx
       }}
     />
@@ -285,24 +251,29 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
   const selectSx = {
     minWidth: 250,
     width: '100%',
-    borderRadius: '12px',
-    background: 'rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(10px)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    '& .MuiOutlinedInput-notchedOutline': {
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-    },
-    '&:hover .MuiOutlinedInput-notchedOutline': {
-      border: '1px solid rgba(255, 255, 255, 0.3)',
-    },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      border: `2px solid ${alpha(theme.palette.primary.main, 0.5)} !important`,
-    },
-    '&:hover': {
-        background: 'rgba(255, 255, 255, 0.12)',
-    },
-    '&.Mui-focused': {
-        background: 'rgba(255, 255, 255, 0.15)',
+  };
+
+  const menuProps = {
+    PaperProps: {
+      sx: {
+        backgroundColor: alpha(theme.palette.background.paper, 0.9),
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${alpha('#fff', 0.1)}`,
+        borderRadius: '12px',
+        maxHeight: 300,
+        '& .MuiMenuItem-root': {
+          padding: '10px 16px',
+          '&:hover': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          },
+          '&.Mui-selected': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.2),
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.3),
+            },
+          },
+        },
+      },
     },
   };
   const { register, control, handleSubmit, watch, setValue, getValues, trigger, formState: { errors }, reset, setError, clearErrors } = useForm({
@@ -1176,14 +1147,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                                               {...field}
                                               label="Discapacidad"
                                               sx={selectSx}
-                                              MenuProps={{
-                                                PaperProps: {
-                                                  style: {
-                                                    backgroundColor: '#ffffff',
-                                                    height: 250,
-                                                  },
-                                                },
-                                              }}
+                                              MenuProps={menuProps}
                                             >
                                               <MenuItem value="Ninguna">Ninguna</MenuItem>
                                               <MenuItem value="Física">Física</MenuItem>
@@ -1266,14 +1230,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                                                                 {...field}
                                                                 label="Nivel Escolar"
                                                                 sx={selectSx}
-                                                                MenuProps={{
-                                                                  PaperProps: {
-                                                                    style: {
-                                                                      backgroundColor: '#ffffff',
-                                                                      height: 250,
-                                                                    },
-                                                                  },
-                                                                }}
+                                                                MenuProps={menuProps}
                                                               >
                                                                 <MenuItem value="DOCTORADO O EQUIVALENTE">DOCTORADO O EQUIVALENTE</MenuItem>
                                                                 <MenuItem value="EDUCACIÓN BÁSICA PRIMARIA">EDUCACIÓN BÁSICA PRIMARIA</MenuItem>
@@ -1304,14 +1261,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                                                                 {...field}
                                                                 label="Profesión"
                                                                 sx={selectSx}
-                                                                MenuProps={{
-                                                                  PaperProps: {
-                                                                    style: {
-                                                                      backgroundColor: '#ffffff',
-                                                                      height: 250,
-                                                                    },
-                                                                  },
-                                                                }}
+                                                                MenuProps={menuProps}
                                                               >
                                                                 <MenuItem value="Abogado">Abogado</MenuItem>
                                                                 <MenuItem value="Administrador de Empresas">Administrador de Empresas</MenuItem>
@@ -1402,14 +1352,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                                                                 {...field}
                                                                 label="Instituciones"
                                                                 sx={selectSx}
-                                                                MenuProps={{
-                                                                  PaperProps: {
-                                                                    style: {
-                                                                      backgroundColor: '#ffffff',
-                                                                      height: 250,
-                                                                    },
-                                                                  },
-                                                                }}
+                                                                MenuProps={menuProps}
                                                               >
                                                                 <MenuItem value="Universidad Nacional de Colombia">Universidad Nacional de Colombia</MenuItem>
                                                                 <MenuItem value="Universidad de los Andes">Universidad de los Andes</MenuItem>
@@ -2040,14 +1983,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                                             {...field}
                                             label="Naturaleza del Crédito"
                                             sx={selectSx}
-                                            MenuProps={{
-                                              PaperProps: {
-                                                style: {
-                                                  backgroundColor: '#ffffff',
-                                                  height: 300,
-                                                },
-                                              },
-                                            }}
+                                            MenuProps={menuProps}
                                           >
                                             <MenuItem value="Primera Clase: Alimentos de Menores">Primera Clase: Alimentos de Menores</MenuItem>
                                             <MenuItem value="Primera Clase: Obligaciones Laborales">Primera Clase: Obligaciones Laborales</MenuItem>

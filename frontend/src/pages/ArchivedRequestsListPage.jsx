@@ -625,16 +625,6 @@ const ArchivedRequestsListPage = () => {
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 3,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: alpha(theme.palette.primary.main, 0.5),
-                            }
-                          },
-                          '&.Mui-focused': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.15)}`,
-                          }
                         }
                       }}
                     />
@@ -657,16 +647,6 @@ const ArchivedRequestsListPage = () => {
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 3,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: alpha(theme.palette.primary.main, 0.5),
-                            }
-                          },
-                          '&.Mui-focused': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.15)}`,
-                          }
                         }
                       }}
                     />

@@ -133,21 +133,68 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            // Se movió la lógica base a MuiOutlinedInput
+          },
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: alpha(premiumPalette.text.primary, 0.6),
+          '&.Mui-focused': {
+            color: premiumPalette.primary.light,
+            fontWeight: 600,
+          },
+        },
+        outlined: {
+          // Ajuste de posición inicial
+          transform: 'translate(14px, 16px) scale(1)',
+          '&.MuiInputLabel-shrink': {
+            // Fondo sólido/semi-transparente para ocultar el borde detrás del label
+            // y asegurar legibilidad en diseño glassmorphism
+            transform: 'translate(14px, -9px) scale(0.75)',
+            padding: '0 8px',
+            backgroundColor: premiumPalette.background.paper,
+            backdropFilter: 'blur(10px)',
+            borderRadius: '4px',
+            color: premiumPalette.primary.light,
+            zIndex: 1,
+          },
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: '12px',
+          backgroundColor: alpha(premiumPalette.background.paper, 0.4),
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            backgroundColor: alpha(premiumPalette.background.paper, 0.6),
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: alpha(premiumPalette.primary.main, 0.4),
             },
-            '& fieldset': {
-              borderColor: 'rgba(255, 255, 255, 0.1)',
-            },
-            '&.Mui-focused fieldset': {
+          },
+          '&.Mui-focused': {
+            backgroundColor: alpha(premiumPalette.background.paper, 0.8),
+            '& .MuiOutlinedInput-notchedOutline': {
               borderWidth: '1px',
-              borderColor: premiumPalette.primary.light,
+              borderColor: premiumPalette.primary.main,
               boxShadow: `0 0 0 4px ${alpha(premiumPalette.primary.main, 0.1)}`,
             },
           },
+        },
+        notchedOutline: {
+          borderColor: alpha('#fff', 0.1),
+          transition: 'all 0.2s ease-in-out',
+          '& legend': {
+            // Asegurar que el legend (el espacio en el borde) sea visible
+            fontSize: '0.75em',
+          }
+        },
+        input: {
+          padding: '16.5px 14px',
         },
       },
     },

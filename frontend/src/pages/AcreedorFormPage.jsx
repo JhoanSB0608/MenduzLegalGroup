@@ -22,8 +22,6 @@ import LocationSelector from '../components/forms/LocationSelector';
 
 // Enhanced Text Field Component
 const EnhancedTextField = ({ icon: Icon, field, ...props }) => {
-  const theme = useTheme();
-  
   return (
     <TextField
       {...field}
@@ -37,27 +35,6 @@ const EnhancedTextField = ({ icon: Icon, field, ...props }) => {
         ...props.InputProps,
       }}
       sx={{
-        '& .MuiOutlinedInput-root': {
-          borderRadius: 3,
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: alpha(theme.palette.primary.main, 0.5),
-            }
-          },
-          '&.Mui-focused': {
-            transform: 'translateY(-2px)',
-            boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.15)}`,
-          },
-          '&.Mui-error': {
-            '&.Mui-focused': {
-              boxShadow: `0 8px 24px ${alpha(theme.palette.error.main, 0.15)}`,
-            }
-          }
-        },
-        '& .MuiFormLabel-root': {
-          fontWeight: 600,
-        },
         ...props.sx,
       }}
     />
@@ -66,31 +43,11 @@ const EnhancedTextField = ({ icon: Icon, field, ...props }) => {
 
 // Enhanced Select Component
 const EnhancedSelect = ({ icon: Icon, children, ...props }) => {
-  const theme = useTheme();
-  
   return (
     <FormControl 
       fullWidth 
       margin="normal" 
       error={!!props.error}
-      sx={{
-        '& .MuiOutlinedInput-root': {
-          borderRadius: 3,
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: alpha(theme.palette.primary.main, 0.5),
-            }
-          },
-          '&.Mui-focused': {
-            transform: 'translateY(-2px)',
-            boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.15)}`,
-          }
-        },
-        '& .MuiFormLabel-root': {
-          fontWeight: 600,
-        }
-      }}
     >
       <InputLabel id={`${props.name}-label`}>{props.label}</InputLabel>
       <Controller
@@ -121,7 +78,6 @@ const EnhancedSelect = ({ icon: Icon, children, ...props }) => {
     </FormControl>
   );
 };
-
 // Form Steps Configuration
 const formSteps = [
   { 

@@ -13,51 +13,13 @@ import GlassCard from '../common/GlassCard'; // Importing from common location
 import { ArchiverAnexosSection } from '../common/ArchiverAnexosSection'; // Importing from common location
 
 const GlassTextField = React.forwardRef(({ error, ...props }, ref) => {
-  const theme = useTheme();
-  
   return (
     <TextField
       {...props}
       inputRef={ref}
       error={error}
+      variant="outlined"
       sx={{
-        '& .MuiOutlinedInput-root': {
-          // Use design system border radius
-          borderRadius: 'var(--border-radius-md)', // Was 12px
-          background: 'rgba(255, 255, 255, 0.08)', // This might need adjustment based on design system palette/opacity
-          backdropFilter: 'blur(10px)', // Keep blur effect
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '& fieldset': {
-            // Use a more premium border, maybe slightly darker or colored
-            border: '1px solid rgba(255, 255, 255, 0.2)', // Adjust border opacity/color
-          },
-          '&:hover': {
-            background: 'rgba(255, 255, 255, 0.12)',
-            transform: 'translateY(-1px)',
-            '& fieldset': {
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-            },
-          },
-          '&.Mui-focused': {
-            background: 'rgba(255, 255, 255, 0.15)',
-            '& fieldset': {
-              // Use theme primary color for focus, but ensure it aligns with design system
-              border: `2px solid ${error ? theme.palette.error.main : 'var(--color-primary)'} !important`,
-            },
-          },
-          '&.Mui-error': {
-            '& fieldset': {
-              border: `1px solid ${alpha(theme.palette.error.main, 0.5)}`,
-            },
-          },
-        },
-        '& .MuiInputLabel-root': {
-          // Label color might need adjustment for dark background
-          color: 'var(--color-text-muted)',
-          '&.Mui-focused': {
-            color: error ? theme.palette.error.main : 'var(--color-primary)',
-          },
-        },
         ...props.sx
       }}
     />
@@ -65,46 +27,10 @@ const GlassTextField = React.forwardRef(({ error, ...props }, ref) => {
 });
 
 const GlassSelect = ({ control, name, label, options, rules, error, ...props }) => {
-  const theme = useTheme();
   const selectSx = {
     minWidth: 250,
     width: '100%',
-    // Use design system border radius
-    borderRadius: 'var(--border-radius-md)', // Was 12px
-    background: 'rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(10px)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    '& .MuiOutlinedInput-notchedOutline': {
-      border: '1px solid rgba(255, 255, 255, 0.2)', // Adjust border opacity/color
-    },
-    '&:hover .MuiOutlinedInput-notchedOutline': {
-      border: '1px solid rgba(255, 255, 255, 0.3)',
-    },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      // Use theme primary color for focus, but ensure it aligns with design system
-      border: `2px solid ${error ? theme.palette.error.main : 'var(--color-primary)'} !important`,
-    },
-    '&:hover': {
-        background: 'rgba(255, 255, 255, 0.12)',
-    },
-    '&.Mui-focused': {
-        background: 'rgba(255, 255, 255, 0.15)',
-    },
-    // Style for the dropdown menu itself
-    '& .MuiDropdown-paper': { // Note: MuiDropdown-paper might not be a standard class, usually it's '.MuiPaper-root' inside the MenuList/Popover
-        borderRadius: 'var(--border-radius-lg)', // Use larger radius for menu
-        boxShadow: 'var(--shadow-lg)',
-        background: 'var(--color-background)', // Dark background for menu
-        color: 'var(--color-text)',
-        '& .MuiMenuItem-root': {
-            '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle hover for menu items
-            },
-            '&.Mui-selected': {
-                backgroundColor: 'rgba(245, 158, 11, 0.1)', // Example: Using a transparent primary color for selected item
-            }
-        }
-    }
+    ...props.sx
   };
   return (
       <FormControl fullWidth error={!!error}>
@@ -131,7 +57,6 @@ const GlassSelect = ({ control, name, label, options, rules, error, ...props }) 
       </FormControl>
   );
 };
-
 const ArchiverInsolvenciaForm = ({ onSubmit, archiverEntryId, initialData, onUploadSuccess }) => {
   const theme = useTheme();
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm({

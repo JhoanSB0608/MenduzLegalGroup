@@ -132,28 +132,6 @@ const DescriptionModal = ({ open, onClose, onConfirm, defaultValue = '' }) => {
               handleConfirm();
             }
           }}
-          sx={{ // Apply glass effect to TextField if needed, or rely on parent styling
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 'var(--border-radius-md)', // Use design token
-              background: 'rgba(255, 255, 255, 0.08)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              '&:hover': {
-                background: 'rgba(255, 255, 255, 0.12)',
-                '& fieldset': { border: '1px solid rgba(255, 255, 255, 0.3)' },
-              },
-              '&.Mui-focused': {
-                background: 'rgba(255, 255, 255, 0.15)',
-                '& fieldset': { border: `2px solid var(--color-primary) !important` }, // Use primary color for focus
-              },
-            },
-            '& .MuiInputLabel-root': {
-              color: 'var(--color-text-muted)', // Use muted text color
-              '&.Mui-focused': {
-                color: 'var(--color-primary)', // Use primary color when focused
-              },
-            },
-          }}
         />
       </DialogContent>
       <DialogActions sx={{ p: 3, borderTop: `1px solid rgba(255, 255, 255, 0.1)` }}> {/* Adjust padding and border */}
