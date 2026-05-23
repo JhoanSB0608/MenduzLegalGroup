@@ -1,8 +1,8 @@
-// solicitudService.js (actualizado)
 import axios from 'axios';
 import { saveAs } from 'file-saver';
+import { API_BASE_URL } from './userService';
 
-const API_URL = 'https://menduzlegalgroup.onrender.comapi/solicitudes';
+const API_URL = `${API_BASE_URL}/api/solicitudes`;
 
 const getToken = () => {
   const userInfo = localStorage.getItem('userInfo');
@@ -19,8 +19,6 @@ const getConfig = (options = {}) => {
 export const createSolicitud = async (payload) => {
   try {
     const config = getConfig();
-    // If payload is FormData, we must remove the Content-Type header
-    // so that the browser can set it with the correct boundary.
     if (payload instanceof FormData) {
       delete config.headers['Content-Type'];
     }
@@ -28,7 +26,6 @@ export const createSolicitud = async (payload) => {
     return response.data;
   } catch (err) {
     console.error('Error creating solicitud:', err.response?.data || err.message || err);
-    // Normalize error for frontend
     throw err.response?.data || { message: err.message || 'Error creando la solicitud' };
   }
 };
@@ -58,7 +55,6 @@ export const downloadSolicitudDocument = async (solicitudId, format = 'pdf', fil
       if (match) downloadFilename = decodeURIComponent(match[1] || match[2] || match[3]);
     }
     
-    // If a filename was passed for an anexo, use that for saving.
     if (format === 'anexo' && filename) {
       downloadFilename = filename;
     }
@@ -67,7 +63,6 @@ export const downloadSolicitudDocument = async (solicitudId, format = 'pdf', fil
     return true;
   } catch (error) {
     console.error('Error al descargar el documento', error);
-    // lanzar objeto consistente
     throw error.response?.data || { message: error.message || 'Error descargando el documento' };
   }
 };

@@ -41,6 +41,8 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,           // https://menduzlegalgroup.vercel.app
   "https://www.menduzlegalgroup.vercel.app",     // versión con www
   "https://menduzlegalgroup.vercel.app",     // dominio vercel
+  "http://localhost:3000",            // desarrollo local
+  "http://localhost:3001",            // desarrollo local frontend
 ];
 
 console.log("Activando CORS para:", allowedOrigins);

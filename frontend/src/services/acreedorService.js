@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_BASE_URL } from './userService';
 
-const API_URL = 'https://menduzlegalgroup.onrender.comapi/acreedores';
+const API_URL = `${API_BASE_URL}/api/acreedores`;
 
 // Helper para obtener el token y la configuración
 const getConfig = (options = {}) => {
