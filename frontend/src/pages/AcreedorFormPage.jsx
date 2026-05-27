@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createAcreedor, getAcreedor, updateAcreedor } from '../services/acreedorService';
+import { uploadFile } from '../services/fileStorageService';
+import { handleAxiosError } from '../utils/alert';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   TextField, Button, Typography, Box, FormControl, InputLabel, Select, MenuItem, IconButton, 
@@ -14,7 +16,7 @@ import {
   Badge as BadgeIcon, LocationOn as LocationIcon, Email as EmailIcon,
   Phone as PhoneIcon, Home as HomeIcon,
   Save as SaveIcon, Edit as EditIcon, Add as AddIcon, CheckCircle,
-  Error as ErrorIcon
+  Error as ErrorIcon, Description as DescriptionIcon
 } from '@mui/icons-material';
 
 import GlassCard from '../components/common/GlassCard';
@@ -112,11 +114,17 @@ const AcreedorFormPage = () => {
   });
 
   // Query for existing acreedor data
-  const { data: acreedor, isLoading, isError } = useQuery({
+  const { data: acreedor, isLoading, isError, error } = useQuery({
     queryKey: ['acreedor', id],
     queryFn: () => getAcreedor(id),
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (isError) {
+      console.error('[AcreedorFormPage] Error al cargar acreedor:', error);
+    }
+  }, [isError, error]);
 
   // Create mutation
   const createMutation = useMutation({
@@ -158,11 +166,25 @@ const AcreedorFormPage = () => {
   }, [acreedor, setValue]);
 
   // Form submission handler
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    let finalData = { ...data };
+    
+    if (data.camaraComercioFile) {
+        try {
+            const { fileUrl, uniqueFilename } = await uploadFile(data.camaraComercioFile);
+            finalData.camaraComercio = { url: fileUrl, name: uniqueFilename };
+            delete finalData.camaraComercioFile;
+            delete finalData.camaraComercioName;
+        } catch (error) {
+            handleAxiosError(error, 'Error al subir el documento de Cámara de Comercio.');
+            return;
+        }
+    }
+
     if (id) {
-      updateMutation.mutate(data);
+      updateMutation.mutate(finalData);
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(finalData);
     }
   };
 
@@ -235,6 +257,7 @@ const AcreedorFormPage = () => {
           </Typography>
           <Typography variant="body2">
             No se pudo cargar la información del acreedor.
+            {error?.message && <Box component="pre" sx={{ mt: 1, fontSize: '0.7rem' }}>{error.message}</Box>}
           </Typography>
         </Alert>
       </Container>
@@ -449,6 +472,31 @@ const AcreedorFormPage = () => {
                           helperText={errors.nitCc?.message}
                           icon={BadgeIcon}
                         />
+
+                        <Box sx={{ mt: 3 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Documento Cámara de Comercio</Typography>
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<DescriptionIcon />}
+                            fullWidth
+                            sx={{ py: 2, borderRadius: 3 }}
+                          >
+                            {watch('camaraComercioName') ? watch('camaraComercioName') : 'Adjuntar PDF Cámara de Comercio'}
+                            <input
+                              type="file"
+                              hidden
+                              accept=".pdf"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  setValue('camaraComercioFile', file);
+                                  setValue('camaraComercioName', file.name);
+                                }
+                              }}
+                            />
+                          </Button>
+                        </Box>
                       </Stack>
                     </Fade>
                   )}

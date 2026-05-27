@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAcreedores, deleteAcreedor } from '../services/acreedorService';
+import { downloadFile } from '../services/fileStorageService';
 import {
   useReactTable,
   getCoreRowModel,
@@ -21,7 +22,7 @@ import {
   Edit, Delete, ArrowUpward, ArrowDownward, Add, Search, FilterList,
   Person as PersonIcon, Business as BusinessIcon, Email as EmailIcon,
   LocationOn as LocationIcon, Badge as BadgeIcon, Refresh, GetApp,
-  Warning, CheckCircle
+  Warning, CheckCircle, Description as DescriptionIcon
 } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
 
@@ -178,6 +179,7 @@ const AcreedoresListPage = () => {
     { 
       accessorKey: 'nombre', 
       header: 'Acreedor',
+      size: 250,
       cell: ({ getValue, row }) => (
         <Stack direction="row" alignItems="center" spacing={2}>
           <Avatar 
@@ -202,6 +204,7 @@ const AcreedoresListPage = () => {
     { 
       accessorKey: 'tipoDoc', 
       header: 'Tipo Doc.',
+      size: 100,
       cell: ({ getValue }) => {
         const docInfo = getDocTypeInfo(getValue());
         return (
@@ -222,6 +225,7 @@ const AcreedoresListPage = () => {
     { 
       accessorKey: 'nitCc', 
       header: 'No. Documento',
+      size: 150,
       cell: ({ getValue }) => (
         <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
           {getValue() || 'N/A'}
@@ -231,6 +235,7 @@ const AcreedoresListPage = () => {
     { 
       accessorKey: 'ciudad', 
       header: 'Ciudad',
+      size: 150,
       cell: ({ getValue }) => (
         <Stack direction="row" alignItems="center" spacing={1}>
           <LocationIcon 
@@ -246,6 +251,7 @@ const AcreedoresListPage = () => {
     { 
       accessorKey: 'email', 
       header: 'Email',
+      size: 200,
       cell: ({ getValue }) => (
         <Stack direction="row" alignItems="center" spacing={1}>
           <EmailIcon 
@@ -256,7 +262,7 @@ const AcreedoresListPage = () => {
             variant="body2" 
             sx={{ 
               fontWeight: 500,
-              maxWidth: 200,
+              maxWidth: 150,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -268,8 +274,26 @@ const AcreedoresListPage = () => {
       )
     },
     {
+      accessorKey: 'camaraComercio',
+      header: 'Cámara y Comercio',
+      size: 100,
+      cell: ({ getValue }) => {
+        const camara = getValue();
+        return camara?.url ? (
+          <Tooltip title="Descargar Cámara de Comercio">
+            <IconButton onClick={() => downloadFile(camara.name)}>
+              <DescriptionIcon color="primary" />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Typography variant="caption" color="text.disabled">No disponible</Typography>
+        );
+      }
+    },
+    {
       id: 'actions',
       header: 'Acciones',
+      size: 100,
       cell: ({ row }) => (
         <Stack direction="row" spacing={1} justifyContent="flex-end">
           <Tooltip title="Editar acreedor">
@@ -696,7 +720,7 @@ const AcreedoresListPage = () => {
           <Grow in={true} timeout={1000}>
             <GlassCard>
               <TableContainer sx={{ borderRadius: 3 }}>
-                <Table>
+                <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
                   <TableHead>
                     {table.getHeaderGroups().map(headerGroup => (
                       <TableRow key={headerGroup.id}>
@@ -706,6 +730,7 @@ const AcreedoresListPage = () => {
                             onClick={header.column.getToggleSortingHandler()}
                             sx={{ 
                               py: 2,
+                              width: header.getSize(),
                               bgcolor: alpha(theme.palette.primary.main, 0.02),
                               borderBottom: `2px solid ${alpha(theme.palette.primary.main, 0.1)}`,
                               cursor: header.column.getCanSort() ? 'pointer' : 'default',
