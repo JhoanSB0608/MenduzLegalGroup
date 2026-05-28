@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useCallback, useMemo } from 
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from './theme';
+import getTheme from './theme';
 import { Container } from '@mui/material';
 import Header from './components/Header';
 import LandingPage from './pages/LandingPage'; // Nuevo
@@ -25,7 +25,6 @@ import ArchiverPage from './pages/ArchiverPage'; // New import
 import ArchivedRequestsListPage from './pages/ArchivedRequestsListPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import getTheme from './theme'; 
 
 export const AuthContext = createContext(null);
 export const ThemeContext = createContext(null);
