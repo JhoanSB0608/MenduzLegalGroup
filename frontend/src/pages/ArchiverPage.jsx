@@ -353,18 +353,6 @@ const ArchiverPage = () => {
                         label="Tipo de Solicitud"
                         onChange={handleTipoChange}
                         sx={{
-                          borderRadius: '16px',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          backdropFilter: 'blur(10px)',
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            border: `2px solid ${alpha(theme.palette.primary.main, 0.5)}`,
-                          },
                           '& .MuiSelect-select': {
                             display: 'flex',
                             alignItems: 'center',

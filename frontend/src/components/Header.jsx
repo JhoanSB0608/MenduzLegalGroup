@@ -1,17 +1,20 @@
 import React, { useContext } from 'react';
 import { AppBar, Toolbar, Button, Box, alpha, useTheme, Stack, Avatar, Typography, IconButton } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
-import { AuthContext } from '../App';
+import { AuthContext, ThemeContext } from '../App';
 import { 
   Logout as LogoutIcon, 
   AdminPanelSettings as AdminIcon, 
   AccountBalanceWallet as WalletIcon, 
   AddCircleOutline as AddIcon,
-  Archive as ArchiveIcon
+  Archive as ArchiveIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon
 } from '@mui/icons-material';
 
 const Header = () => {
   const { user, logout } = useContext(AuthContext);
+  const { mode, toggleTheme } = useContext(ThemeContext);
   const theme = useTheme();
   const location = useLocation();
   const homePath = user ? '/admin' : '/';
@@ -36,7 +39,7 @@ const Header = () => {
         background: alpha(theme.palette.background.paper, 0.6),
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderBottom: `1px solid ${alpha('#fff', 0.08)}`,
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
       }}
     >
       <Toolbar 
@@ -78,14 +81,14 @@ const Header = () => {
                         borderRadius: '12px',
                         px: 2,
                         py: 1,
-                        color: isActive ? '#fff' : alpha('#fff', 0.6),
+                        color: isActive ? '#fff' : alpha(theme.palette.text.primary, 0.6),
                         background: isActive ? alpha(item.color, 0.15) : 'transparent',
                         border: `1px solid ${isActive ? alpha(item.color, 0.3) : 'transparent'}`,
                         fontWeight: isActive ? 700 : 500,
                         transition: 'all 0.3s ease',
                         '&:hover': {
                           background: alpha(item.color, 0.2),
-                          color: '#fff',
+                          color: theme.palette.text.primary,
                           transform: 'translateY(-2px)',
                         },
                       }}
@@ -103,16 +106,40 @@ const Header = () => {
                   gap: 1.5,
                   p: '6px 16px',
                   borderRadius: '100px',
-                  background: alpha('#fff', 0.05),
+                  background: alpha(theme.palette.text.primary, 0.05),
                   border: `1px solid ${alpha('#fff', 0.1)}`,
                 }}>
                   <Avatar sx={{ width: 28, height: 28, bgcolor: theme.palette.primary.main, fontSize: '0.875rem' }}>
                     {user.name?.charAt(0).toUpperCase()}
                   </Avatar>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: alpha('#fff', 0.9) }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: alpha(theme.palette.text.primary, 0.9) }}>
                     {user.name}
                   </Typography>
                 </Box>
+
+                <IconButton
+                  onClick={toggleTheme}
+                  sx={{
+                    color: mode === 'dark'
+                      ? theme.palette.warning.light
+                      : theme.palette.primary.main,
+                    background:
+                      mode === 'dark'
+                        ? alpha(theme.palette.warning.main, 0.12)
+                        : alpha(theme.palette.primary.main, 0.12),
+                    borderRadius: '12px',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'rotate(15deg)',
+                      background:
+                        mode === 'dark'
+                          ? alpha(theme.palette.warning.main, 0.2)
+                          : alpha(theme.palette.primary.main, 0.2),
+                    },
+                  }}
+                >
+                  {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+                </IconButton>
 
                 <IconButton 
                   onClick={logout}
@@ -133,13 +160,38 @@ const Header = () => {
             </>
           ) : (
             <Stack direction="row" spacing={2}>
+
+              <IconButton
+                onClick={toggleTheme}
+                sx={{
+                  color: mode === 'dark'
+                    ? theme.palette.warning.light
+                    : theme.palette.primary.main,
+                  background:
+                    mode === 'dark'
+                      ? alpha(theme.palette.warning.main, 0.12)
+                      : alpha(theme.palette.primary.main, 0.12),
+                  borderRadius: '12px',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'rotate(15deg)',
+                    background:
+                      mode === 'dark'
+                        ? alpha(theme.palette.warning.main, 0.2)
+                        : alpha(theme.palette.primary.main, 0.2),
+                  },
+                }}
+              >
+                {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+
               <Button 
                 component={Link} 
                 to="/login"
                 sx={{
-                  color: '#fff',
+                  color: theme.palette.text.primary,
                   fontWeight: 600,
-                  '&:hover': { background: alpha('#fff', 0.05) }
+                  '&:hover': { background: alpha(theme.palette.text.primary, 0.05) }
                 }}
               >
                 Iniciar Sesión

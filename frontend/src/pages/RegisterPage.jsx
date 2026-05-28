@@ -159,7 +159,7 @@ const RegisterPage = () => {
             py: 1.5,
             borderRadius: '12px',
             borderColor: 'rgba(255,255,255,0.1)',
-            color: '#fff',
+           color: theme.palette.text.primary,
             '&:hover': {
               borderColor: theme.palette.secondary.main,
               background: alpha(theme.palette.secondary.main, 0.05),

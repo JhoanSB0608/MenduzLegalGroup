@@ -50,71 +50,110 @@ const premiumPalette = {
   },
 };
 
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    ...premiumPalette,
-  },
-  typography: {
-    fontFamily: '"Inter", "Montserrat", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontWeight: 800, letterSpacing: '-0.02em' },
-    h2: { fontWeight: 800, letterSpacing: '-0.015em' },
-    h3: { fontWeight: 700, letterSpacing: '-0.01em' },
-    h4: { fontWeight: 700, letterSpacing: '-0.005em' },
-    h5: { fontWeight: 600 },
-    h6: { fontWeight: 600 },
-    subtitle1: { fontWeight: 500 },
-    subtitle2: { fontWeight: 500 },
-    body1: { lineHeight: 1.6 },
-    body2: { lineHeight: 1.6 },
-    button: {
-      textTransform: 'none',
-      fontWeight: 600,
+const getTheme = (mode) => {
+const isDark = mode === 'dark';
+
+const currentBackground = isDark
+  ? premiumPalette.background.paper
+  : '#FFFFFF';
+
+const currentTextPrimary = isDark
+  ? premiumPalette.text.primary
+  : '#1E293B';
+
+const currentTextSecondary = isDark
+  ? premiumPalette.text.secondary
+  : '#64748B';
+
+const currentDivider = isDark
+  ? premiumPalette.divider
+  : 'rgba(0, 0, 0, 0.12)';
+  
+  return createTheme({
+    palette: {
+      mode,
+      ...(isDark ? premiumPalette : {
+        primary: premiumPalette.primary,
+        secondary: premiumPalette.secondary,
+        background: { default: '#F1F5F9', paper: '#FFFFFF' },
+        text: { primary: '#1E293B', secondary: '#64748B' },
+        divider: 'rgba(0, 0, 0, 0.12)',
+        success: premiumPalette.success,
+        error: premiumPalette.error,
+        warning: premiumPalette.warning,
+        info: premiumPalette.info,
+      }),
     },
-  },
-  shape: {
-    borderRadius: 12,
-  },
-  components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          backgroundColor: premiumPalette.background.default,
-          color: premiumPalette.text.primary,
-          backgroundImage: `
-            radial-gradient(circle at 20% 80%, ${alpha(premiumPalette.primary.main, 0.05)}, transparent 40%),
-            radial-gradient(circle at 80% 20%, ${alpha(premiumPalette.secondary.main, 0.05)}, transparent 40%)
-          `,
-          backgroundAttachment: 'fixed',
-        },
+    typography: {
+      fontFamily: '"Inter", "Montserrat", "Roboto", "Helvetica", "Arial", sans-serif',
+      h1: { fontWeight: 800, letterSpacing: '-0.02em' },
+      h2: { fontWeight: 800, letterSpacing: '-0.015em' },
+      h3: { fontWeight: 700, letterSpacing: '-0.01em' },
+      h4: { fontWeight: 700, letterSpacing: '-0.005em' },
+      h5: { fontWeight: 600 },
+      h6: { fontWeight: 600 },
+      subtitle1: { fontWeight: 500 },
+      subtitle2: { fontWeight: 500 },
+      body1: { lineHeight: 1.6 },
+      body2: { lineHeight: 1.6 },
+      button: {
+        textTransform: 'none',
+        fontWeight: 600,
       },
     },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: '10px',
-          padding: '10px 24px',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: `0 8px 16px ${alpha('#000', 0.3)}`,
-          },
-        },
-        containedPrimary: {
-          background: `linear-gradient(135deg, ${premiumPalette.primary.main} 0%, ${premiumPalette.primary.dark} 100%)`,
-          '&:hover': {
-            background: `linear-gradient(135deg, ${premiumPalette.primary.light} 0%, ${premiumPalette.primary.main} 100%)`,
+    shape: {
+      borderRadius: 12,
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            backgroundColor: isDark ? premiumPalette.background.default : '#F8FAFC',
+            color: isDark ? premiumPalette.text.primary : '#1E293B',
+            backgroundImage: isDark
+              ? `
+                radial-gradient(circle at 20% 80%, ${alpha(premiumPalette.primary.main, 0.05)}, transparent 40%),
+                radial-gradient(circle at 80% 20%, ${alpha(premiumPalette.secondary.main, 0.05)}, transparent 40%)
+              `
+              : `
+                radial-gradient(circle at 20% 80%, ${alpha(premiumPalette.primary.light, 0.08)}, transparent 35%),
+                radial-gradient(circle at 80% 20%, ${alpha(premiumPalette.secondary.light, 0.08)}, transparent 35%)
+              `,
+            backgroundAttachment: 'fixed',
+            transition: 'background-color 0.3s ease, color 0.3s ease',
           },
         },
       },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-          backgroundColor: premiumPalette.background.paper,
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: '10px',
+            padding: '10px 24px',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: isDark ? `0 8px 16px ${alpha('#000', 0.3)}` : '0 4px 12px rgba(0,0,0,0.1)',
+            },
+          },
+          containedPrimary: {
+            background: `linear-gradient(135deg, ${premiumPalette.primary.main} 0%, ${premiumPalette.primary.dark} 100%)`,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            backgroundColor: isDark
+              ? alpha(premiumPalette.background.paper, 0.7)
+              : alpha('#FFFFFF', 0.7),
+            border: `1px solid ${
+              isDark
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'rgba(0, 0, 0, 0.08)'
+            }`,
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
         },
       },
     },
@@ -122,7 +161,9 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '20px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          boxShadow: isDark
+            ? '0 8px 32px rgba(0, 0, 0, 0.25)'
+            : '0 8px 32px rgba(15, 23, 42, 0.08)',
           '&:hover': {
             boxShadow: '0 12px 48px rgba(0, 0, 0, 0.3)',
           },
@@ -141,7 +182,7 @@ const theme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: {
-          color: alpha(premiumPalette.text.primary, 0.6),
+          color: alpha(currentTextPrimary, 0.6),
           '&.Mui-focused': {
             color: premiumPalette.primary.light,
             fontWeight: 600,
@@ -155,7 +196,7 @@ const theme = createTheme({
             // y asegurar legibilidad en diseño glassmorphism
             transform: 'translate(14px, -9px) scale(0.75)',
             padding: '0 8px',
-            backgroundColor: premiumPalette.background.paper,
+            backgroundColor: alpha(currentBackground, 0.9),
             backdropFilter: 'blur(10px)',
             borderRadius: '4px',
             color: premiumPalette.primary.light,
@@ -168,16 +209,16 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '12px',
-          backgroundColor: alpha(premiumPalette.background.paper, 0.4),
+          backgroundColor: alpha(currentBackground, isDark ? 0.4 : 0.7),
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            backgroundColor: alpha(premiumPalette.background.paper, 0.6),
+            backgroundColor: alpha(currentBackground, isDark ? 0.6 : 0.9),
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: alpha(premiumPalette.primary.main, 0.4),
             },
           },
           '&.Mui-focused': {
-            backgroundColor: alpha(premiumPalette.background.paper, 0.8),
+            backgroundColor: alpha(currentBackground, isDark ? 0.8 : 1),
             '& .MuiOutlinedInput-notchedOutline': {
               borderWidth: '1px',
               borderColor: premiumPalette.primary.main,
@@ -186,7 +227,7 @@ const theme = createTheme({
           },
         },
         notchedOutline: {
-          borderColor: alpha('#fff', 0.1),
+          borderColor: alpha(currentDivider, isDark ? 0.4 : 1),
           transition: 'all 0.2s ease-in-out',
           '& legend': {
             // Asegurar que el legend (el espacio en el borde) sea visible
@@ -203,15 +244,16 @@ const theme = createTheme({
         head: {
           backgroundColor: alpha(premiumPalette.primary.main, 0.05),
           fontWeight: 700,
-          color: premiumPalette.text.secondary,
-          borderBottom: `2px solid ${premiumPalette.divider}`,
+          color: currentTextSecondary,
+          borderBottom: `2px solid ${currentDivider}`,
         },
         root: {
-          borderColor: premiumPalette.divider,
+          borderColor: currentDivider,
+          },
         },
       },
     },
-  },
-});
+  });
+};
 
-export default theme;
+export default getTheme;

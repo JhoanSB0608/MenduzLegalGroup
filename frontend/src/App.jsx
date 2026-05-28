@@ -25,23 +25,36 @@ import ArchiverPage from './pages/ArchiverPage'; // New import
 import ArchivedRequestsListPage from './pages/ArchivedRequestsListPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import getTheme from './theme'; 
 
 export const AuthContext = createContext(null);
+export const ThemeContext = createContext(null);
 
 const queryClient = new QueryClient();
 
-// El AuthProvider debe estar dentro de un Router para usar useNavigate
-const AuthWrapper = ({ children }) => (
-  <Router>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
-  </Router>
-);
+const AuthWrapper = ({ children }) => {
+  const [mode, setMode] = useState(localStorage.getItem('themeMode') || 'dark');
+  const theme = useMemo(() => getTheme(mode), [mode]);
 
+  const toggleTheme = () => {
+    const newMode = mode === 'light' ? 'dark' : 'light';
+    setMode(newMode);
+    localStorage.setItem('themeMode', newMode);
+  };
+
+  return (
+    <Router>
+      <ThemeContext.Provider value={{ mode, toggleTheme }}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>{children}</AuthProvider>
+          </QueryClientProvider>
+        </ThemeProvider>
+      </ThemeContext.Provider>
+    </Router>
+  );
+};
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

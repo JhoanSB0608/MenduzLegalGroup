@@ -374,13 +374,23 @@ const LandingPage = () => {
                         component="h1"
                         sx={{
                           fontWeight: 900,
-                          fontSize: { xs: '2.5rem', sm: '3.2rem', md: '4rem' },
+                          fontSize: {
+                            xs: '2.5rem',
+                            sm: '3.2rem',
+                            md: '4rem',
+                          },
                           lineHeight: 1.1,
-                          background: `linear-gradient(135deg, #fff 0%, ${alpha('#fff', 0.6)} 100%)`,
+                          background: `linear-gradient(
+                            135deg,
+                            ${theme.palette.text.primary} 0%,
+                            ${alpha(theme.palette.text.primary, 0.7)} 100%
+                          )`,
+                        
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
                           backgroundClip: 'text',
-                          mb: 3
+                        
+                          mb: 3,
                         }}
                       >
                         Plataforma Integral para Procesos Legales

@@ -125,7 +125,7 @@ const LoginPage = () => {
             py: 1.5,
             borderRadius: '12px',
             borderColor: 'rgba(255,255,255,0.1)',
-            color: '#fff',
+            color: theme.palette.text.primary,
             '&:hover': {
               borderColor: theme.palette.primary.main,
               background: alpha(theme.palette.primary.main, 0.05),
