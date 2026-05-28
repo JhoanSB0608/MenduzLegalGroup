@@ -8,9 +8,9 @@ const premiumPalette = {
     contrastText: '#F8FAFC',
   },
   secondary: {
-    main: '#D97706', // Oro Noble Main
-    dark: '#92400E', // Oro Noble Dark
-    light: '#F59E0B', // Oro Noble Light
+    main: '#d98e03', // Oro Noble Main
+    dark: '#b67a0c', // Oro Noble Dark
+    light: '#ffa600', // Oro Noble Light
     contrastText: '#F8FAFC',
   },
   accent: {
