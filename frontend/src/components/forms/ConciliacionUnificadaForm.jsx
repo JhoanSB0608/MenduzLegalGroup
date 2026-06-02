@@ -382,7 +382,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
             }
           }, 200);
         } else if (source === 'upload' && url) {
-          const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://menduzlegalgroup.onrender.com';
+          const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
           setSignatureImage(`${backendUrl}${url}`);
           // Set the URL in form data as if it was uploaded
           setValue('firma.url', url);

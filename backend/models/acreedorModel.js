@@ -11,6 +11,10 @@ const acreedorSchema = new mongoose.Schema({
   pais: { type: String, required: true },
   departamento: { type: String, required: true },
   ciudad: { type: String, required: true },
+  camaraComercio: {
+    url: String,
+    name: String
+  },
 }, { timestamps: true });
 
 // Crear un índice compuesto para asegurar que nitCc sea único por usuario

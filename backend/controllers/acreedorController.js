@@ -49,7 +49,17 @@ const getAcreedores = async (req, res) => {
 // @access  Private
 const getAcreedorById = async (req, res) => {
   try {
+    console.log('[Backend] Buscando acreedor por ID:', req.params.id);
+    console.log('[Backend] Usuario autenticado:', req.user ? req.user._id : 'No identificado');
+
     const acreedor = await Acreedor.findById(req.params.id);
+
+    if (!acreedor) {
+      console.log('[Backend] Acreedor no encontrado en DB.');
+    } else {
+      console.log('[Backend] Acreedor encontrado. User en BD:', acreedor.user);
+      console.log('[Backend] Comparación de usuario:', acreedor.user.equals(req.user._id));
+    }
 
     if (acreedor && acreedor.user.equals(req.user._id)) {
       res.json(acreedor);
@@ -57,6 +67,7 @@ const getAcreedorById = async (req, res) => {
       res.status(404).json({ message: 'Acreedor no encontrado o no autorizado' });
     }
   } catch (error) {
+    console.error('[Backend] Error en getAcreedorById:', error);
     res.status(500).json({ message: 'Error al obtener el acreedor', error: error.message });
   }
 };
@@ -65,7 +76,7 @@ const getAcreedorById = async (req, res) => {
 // @route   POST /api/acreedores
 // @access  Private
 const createAcreedor = async (req, res) => {
-  const { nombre, tipoDoc, nitCc, direccion, email, telefono, pais, departamento, ciudad } = req.body;
+  const { nombre, tipoDoc, nitCc, direccion, email, telefono, pais, departamento, ciudad, camaraComercio } = req.body;
 
   if (!nombre || !tipoDoc || !nitCc || !direccion || !email || !telefono) {
     return res.status(400).json({ message: 'Por favor, complete todos los campos obligatorios.' });
@@ -82,6 +93,7 @@ const createAcreedor = async (req, res) => {
     pais,
     departamento,
     ciudad,
+    camaraComercio,
   });
 
   try {
@@ -104,7 +116,7 @@ const updateAcreedor = async (req, res) => {
     const acreedor = await Acreedor.findById(req.params.id);
 
     if (acreedor && acreedor.user.equals(req.user._id)) {
-      const { nombre, tipoDoc, nitCc, direccion, email, telefono, pais, departamento, ciudad } = req.body;
+      const { nombre, tipoDoc, nitCc, direccion, email, telefono, pais, departamento, ciudad, camaraComercio } = req.body;
 
       acreedor.nombre = nombre || acreedor.nombre;
       acreedor.tipoDoc = tipoDoc || acreedor.tipoDoc;
@@ -115,6 +127,7 @@ const updateAcreedor = async (req, res) => {
       acreedor.pais = pais || acreedor.pais;
       acreedor.departamento = departamento || acreedor.departamento;
       acreedor.ciudad = ciudad || acreedor.ciudad;
+      acreedor.camaraComercio = camaraComercio || acreedor.camaraComercio;
 
       const updatedAcreedor = await acreedor.save();
       res.json(updatedAcreedor);

@@ -172,7 +172,7 @@ const AcreedorFormPage = () => {
     if (data.camaraComercioFile) {
         try {
             const { fileUrl, uniqueFilename } = await uploadFile(data.camaraComercioFile);
-            finalData.camaraComercio = { url: fileUrl, name: uniqueFilename };
+            finalData.camaraComercio = { url: fileUrl, name: uniqueFilename }; // uniqueFilename ya incluye el timestamp
             delete finalData.camaraComercioFile;
             delete finalData.camaraComercioName;
         } catch (error) {
