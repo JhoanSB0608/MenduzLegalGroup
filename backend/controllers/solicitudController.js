@@ -2,7 +2,7 @@ const Solicitud = require('../models/solicitudModel');
 const fs = require('fs');
 const path = require('path');
 const { generateSolicitudPdf } = require('../utils/documentGenerator');
-const { generateSolicitudDocx } = require('../utils/docxGenerator');
+const { generateSolicitudDocx, generateAdmisionDocx } = require('../utils/docxGenerator');
 
 const getSolicitudById = async (req, res) => {
   try {
@@ -157,6 +157,19 @@ const getSolicitudDocumento = async (req, res) => {
       } catch (err) {
         console.error('Error generando DOCX de Insolvencia:', err);
         return res.status(500).json({ message: 'Error generando el documento DOCX', error: err.message, stack: err.stack });
+      }
+    } else if (format === 'admision') {
+      try {
+        const buffer = await generateAdmisionDocx(solicitud);
+        const deudor = solicitud.deudor || {};
+        const nombreCompleto = `${deudor.primerNombre || ''}_${deudor.primerApellido || ''}`.toUpperCase();
+        const filename = `ADMISION_${nombreCompleto}_${solicitud._id.toString().substring(0, 5)}.docx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
+        res.send(buffer);
+      } catch (err) {
+        console.error('Error generando DOCX de Admisión:', err);
+        return res.status(500).json({ message: 'Error generando el documento de Admisión', error: err.message, stack: err.stack });
       }
     } else if (format === 'anexo') {
       try {

@@ -13,9 +13,16 @@ const {
   VerticalAlign,
   PageBreak,
   ImageRun,
+  Header,
+  HorizontalPositionRelativeFrom,
+  VerticalPositionRelativeFrom,
+  TextWrappingType,
+  TextWrappingSide,
 } = require('docx');
 const moment = require('moment');
-const { Unidades } = require('./numeroALetras');
+const fs = require('fs');
+const path = require('path');
+const { Unidades, numeroALetras } = require('./numeroALetras');
 
 // --- Helper Functions ---
 
@@ -836,5 +843,513 @@ const generateConciliacionDocx = async (solicitud = {}) => {
   return Packer.toBuffer(doc);
 };
 
+async function generateAdmisionDocx(solicitud = {}) {
+  // ========== DATA PREPARATION ========== 
+  const deudor = solicitud.deudor || {};
+  const sede = solicitud.sede || {};
+  const acreencias = Array.isArray(solicitud.acreencias) ? solicitud.acreencias : [];
+  const bienesMuebles = Array.isArray(solicitud.bienesMuebles) ? solicitud.bienesMuebles : [];
+  const bienesInmuebles = Array.isArray(solicitud.bienesInmuebles) ? solicitud.bienesInmuebles : [];
+  const infoFin = solicitud.informacionFinanciera || {};
+  const procesosJudiciales = Array.isArray(infoFin.procesosJudiciales) ? infoFin.procesosJudiciales : [];
+  const obligacionesAlimentarias = Array.isArray(infoFin.obligacionesAlimentarias) ? infoFin.obligacionesAlimentarias : [];
+  const propuestaPago = solicitud.propuestaPago;
+  const nombreCompleto = `${(deudor.primerNombre || '')} ${(deudor.segundoNombre || '')} ${(deudor.primerApellido || '')} ${(deudor.segundoApellido || '')}`.replace(/\s+/g, ' ').trim();
+  const totalCapital = acreencias.reduce((s, a) => s + (Number(a.capital) || 0), 0);
+  const acreenciasEnMora = acreencias.filter(a => a.creditoEnMora).length;
+  const capitalEnMora = acreencias.filter(a => a.creditoEnMora).reduce((s, a) => s + (Number(a.capital) || 0), 0);
 
-module.exports = { generateSolicitudDocx, generateConciliacionDocx };
+  const admissionDate = new Date();
+  const audienceDate = new Date(admissionDate);
+  audienceDate.setDate(admissionDate.getDate() + 15);
+  audienceDate.setHours(17, 0, 0, 0); // 5:00 PM as in example
+
+  const children = [];
+
+  // ========== ENCABEZADO AUTO ========== 
+  children.push(createParagraph([createTextRun('AUTO No. 1 ADMISIÓN', { bold: true, size: 24 })], { alignment: AlignmentType.CENTER }));
+  children.push(createParagraph([createTextRun('PROCESO DE NEGOCIACIÓN DE DEUDAS DE PERSONA NATURAL NO COMERCIANTE', { bold: true })], { alignment: AlignmentType.CENTER }));
+  children.push(createParagraph([
+    createTextRun('Deudor: ', { bold: true }),
+    createTextRun(nombreCompleto.toUpperCase()),
+  ], { alignment: AlignmentType.CENTER }));
+  children.push(createParagraph([
+    createTextRun('C.C. número ', { bold: true }),
+    createTextRun(`${safe(deudor.cedula)}, expedida en ${safe(deudor.ciudadExpedicion)} - ${safe(deudor.departamentoExpedicion)}.`),
+  ], { alignment: AlignmentType.CENTER }));
+  children.push(createParagraph([
+    createTextRun('Radicado: ', { bold: true }),
+    createTextRun(solicitud._id.toString().substring(0, 7).toUpperCase()),
+  ], { alignment: AlignmentType.CENTER }));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== FECHA Y LUGAR ========== 
+  const currentMonthLong = admissionDate.toLocaleDateString('es-CO', { month: 'long' });
+  children.push(createParagraph([
+    createTextRun(`${safe(sede.ciudad)}, A los ${admissionDate.getDate()} días del mes de ${currentMonthLong} del año ${admissionDate.getFullYear()}.`),
+  ]));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== CONSIDERACIONES ========== 
+  children.push(createParagraph([
+    createTextRun('Revisada la solicitud en el proceso de Negociación de Pasivos correspondiente al trámite de Insolvencia Económica de Persona Natural No Comerciante del proceso arriba citado, se procede a admitir de conformidad a las siguientes:'),
+  ], { alignment: AlignmentType.JUSTIFIED }));
+
+  children.push(createHeading('CONSIDERACIONES:'));
+  children.push(createParagraph([
+    createTextRun(`La señora ${nombreCompleto.toUpperCase()}, mayor de edad, con domicilio en esta ciudad, identificado con cédula de ciudadanía número ${safe(deudor.cedula)}, en su calidad de deudor, presentó solicitud de negociación de sus deudas con sus acreedores, con el objeto de normalizar sus relaciones crediticias (Artículo 531 C.G.P, modificado por el Articulo 3 de la Ley 2445 del 2025).`),
+  ], { alignment: AlignmentType.JUSTIFIED }));
+
+  children.push(createParagraph([
+    createTextRun('Aceptado el encargo, se procedió a analizar la información y los soportes suministrados con la solicitud y, con estos elementos, se realizó el correspondiente Control de Legalidad según lo dispuesto en el Artículo 132 del C.G.P, en este orden se verificó el cumplimiento de los supuestos de insolvencia (Artículo 538 CGP, modificado por el Articulo 9 de la Ley 2445 del 2025) and se estableció que:'),
+  ], { alignment: AlignmentType.JUSTIFIED }));
+
+  const verifications = [
+    'El deudor es persona natural no comerciante, tal cual se observa en la documentación que aporta.',
+    `Se encuentra en cesación de pagos con ${acreencias.length} (${Unidades(acreencias.length)}) o más obligaciones a favor de dos (2) o más acreedores and por más de noventa (90) días.`,
+    'El valor porcentual de sus obligaciones representa más del treinta por ciento (30%) del pasivo total a su cargo.',
+    'La relación completa de todos los acreedores en el orden de prelación de créditos que señalan los artículos 2488 and siguientes del Código Civil.'
+  ];
+
+  verifications.forEach(v => {
+    children.push(createParagraph([createTextRun(`• ${v}`)], { indentation: { left: 720 } }));
+  });
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== RAZONES POR LAS CUALES ESTA EN INSOLVENCIA ========== 
+  children.push(createHeading('RAZONES POR LAS CUALES ESTA EN INSOLVENCIA:'));
+  children.push(createParagraph([
+    createTextRun('En cumplimiento de lo consagrado en el Art. 539 numeral 1 C.G.P, modificado por el articulo Decimo (10) de la ley 2445 de 2025, menciona la insolvente textualmente en su solicitud lo following:'),
+  ], { alignment: AlignmentType.JUSTIFIED }));
+  const causasTexto = solicitud.causasInsolvencia || (solicitud.causas && solicitud.causas.lista && solicitud.causas.lista.length > 0 ? solicitud.causas.lista.map(c => c.descripcionCausa).join(' ') : 'No reporta');
+  children.push(createParagraph([createTextRun(causasTexto.toUpperCase())], { alignment: AlignmentType.JUSTIFIED, indentation: { left: 720 } }));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== RESUMEN DE ACREENCIAS ========== 
+  children.push(createHeading('2. RESUMEN DE LAS ACREENCIAS:'));
+  const resumoHeader = new TableRow({
+    children: [
+      createHeaderCell('ACREEDORES'),
+      createHeaderCell('CAPITAL'),
+      createHeaderCell('QUÓRUM'),
+      createHeaderCell('INTERÉS\n CORRIENTE'),
+      createHeaderCell('INTERÉS DE\n MORA'),
+      createHeaderCell('OTROS\n CONCEPTOS\n CAUSADOS'),
+      createHeaderCell('DÍAS EN\n MORA'),
+    ],
+    tableHeader: true,
+  });
+
+  const resumoRows = [resumoHeader];
+  
+  const getClassFromNaturaleza = (naturaleza) => {
+    if (!naturaleza) return 'QUINTA CLASE';
+    if (naturaleza.toUpperCase().includes('PRIMERA CLASE')) return 'PRIMERA CLASE';
+    if (naturaleza.toUpperCase().includes('SEGUNDA CLASE')) return 'SEGUNDA CLASE';
+    if (naturaleza.toUpperCase().includes('TERCERA CLASE')) return 'TERCERA CLASE';
+    if (naturaleza.toUpperCase().includes('CUARTA CLASE')) return 'CUARTA CLASE';
+    return 'QUINTA CLASE';
+  };
+
+  const groupedAcreencias = acreencias.reduce((acc, a) => {
+    const aClass = getClassFromNaturaleza(a.naturalezaCredito);
+    if (!acc[aClass]) acc[aClass] = [];
+    acc[aClass].push(a);
+    return acc;
+  }, {});
+
+  const classOrder = ['PRIMERA CLASE', 'SEGUNDA CLASE', 'TERCERA CLASE', 'CUARTA CLASE', 'QUINTA CLASE'];
+  let grandTotalCapital = 0;
+  let grandTotalInteresCorriente = 0;
+  let grandTotalInteresMoratorio = 0;
+
+  classOrder.forEach(className => {
+    if (groupedAcreencias[className]) {
+      resumoRows.push(new TableRow({
+        children: [createCell([createParagraph([createTextRun(className, { bold: true })], { alignment: AlignmentType.CENTER })], { columnSpan: 7 })],
+      }));
+
+      let classTotalCapital = 0;
+      let classTotalInteresCorriente = 0;
+      let classTotalInteresMoratorio = 0;
+
+      groupedAcreencias[className].forEach(a => {
+        const nombre = (a.acreedor && (typeof a.acreedor === 'object' ? (a.acreedor.nombre || '') : a.acreedor)) || 'No reporta';
+        const capital = Number(a.capital) || 0;
+        const interesCorriente = Number(a.valorTotalInteresCorriente) || 0;
+        const interesMoratorio = Number(a.valorTotalInteresMoratorio) || 0;
+
+        classTotalCapital += capital;
+        classTotalInteresCorriente += interesCorriente;
+        classTotalInteresMoratorio += interesMoratorio;
+
+        const porcentaje = totalCapital > 0 ? `${(Math.floor((capital / totalCapital) * 10000) / 100).toFixed(2)}%` : '0.00%';
+        const diasMora = a.creditoEnMora ? 'Más de 90\ndías.' : '';
+
+        resumoRows.push(new TableRow({
+          children: [
+            createCell([createParagraph([createTextRun(nombre)])]),
+            createCell([createParagraph([createTextRun(formatCurrency(capital))], { alignment: AlignmentType.RIGHT })]),
+            createCell([createParagraph([createTextRun(porcentaje)], { alignment: AlignmentType.CENTER })]),
+            createCell([createParagraph([createTextRun(formatCurrency(interesCorriente))], { alignment: AlignmentType.RIGHT })]),
+            createCell([createParagraph([createTextRun(formatCurrency(interesMoratorio))], { alignment: AlignmentType.RIGHT })]),
+            createCell([createParagraph([createTextRun('No Reporta')], { alignment: AlignmentType.CENTER })]),
+            createCell([createParagraph([createTextRun(diasMora)], { alignment: AlignmentType.CENTER })]),
+          ],
+        }));
+      });
+
+      grandTotalCapital += classTotalCapital;
+      grandTotalInteresCorriente += classTotalInteresCorriente;
+      grandTotalInteresMoratorio += classTotalInteresMoratorio;
+
+      const classPorcentaje = totalCapital > 0 ? `${(Math.floor((classTotalCapital / totalCapital) * 10000) / 100).toFixed(2)}%` : '0.00%';
+      resumoRows.push(new TableRow({
+        children: [
+          createCell([createParagraph([createTextRun(`TOTAL ACREENCIAS ${className}`, { bold: true })])]),
+          createCell([createParagraph([createTextRun(formatCurrency(classTotalCapital), { bold: true })], { alignment: AlignmentType.RIGHT })]),
+          createCell([createParagraph([createTextRun(classPorcentaje, { bold: true })], { alignment: AlignmentType.CENTER })]),
+          createCell([createParagraph([createTextRun(formatCurrency(classTotalInteresCorriente), { bold: true })], { alignment: AlignmentType.RIGHT })]),
+          createCell([createParagraph([createTextRun(formatCurrency(classTotalInteresMoratorio), { bold: true })], { alignment: AlignmentType.RIGHT })]),
+          createCell([createParagraph([createTextRun('$0,00', { bold: true })], { alignment: AlignmentType.CENTER })]),
+          createCell([createParagraph([createTextRun('')])]),
+        ],
+      }));
+    }
+  });
+
+  resumoRows.push(new TableRow({
+    children: [
+      createCell([createParagraph([createTextRun('TOTAL ACREENCIAS', { bold: true })])]),
+      createCell([createParagraph([createTextRun(formatCurrency(grandTotalCapital), { bold: true })], { alignment: AlignmentType.RIGHT })]),
+      createCell([createParagraph([createTextRun('100.00%', { bold: true })], { alignment: AlignmentType.CENTER })]),
+      createCell([createParagraph([createTextRun(formatCurrency(grandTotalInteresCorriente), { bold: true })], { alignment: AlignmentType.RIGHT })]),
+      createCell([createParagraph([createTextRun(formatCurrency(grandTotalInteresMoratorio), { bold: true })], { alignment: AlignmentType.RIGHT })]),
+      createCell([createParagraph([createTextRun('$0,00', { bold: true })], { alignment: AlignmentType.CENTER })]),
+      createCell([createParagraph([createTextRun('')])]),
+    ],
+  }));
+
+  const moraPorcentaje = totalCapital > 0 ? `${(Math.floor((capitalEnMora / totalCapital) * 10000) / 100).toFixed(2)}%` : '0.00%';
+  resumoRows.push(new TableRow({
+    children: [
+      createCell([createParagraph([createTextRun('TOTAL DEL CAPITAL EN MORA POR MÁS DE 90 DÍAS\n(No aplica a créditos cuyo pago se esté realizando mediante libranza o descuento por nómina)', { bold: true })])]),
+      createCell([createParagraph([createTextRun(formatCurrency(capitalEnMora), { bold: true })], { alignment: AlignmentType.RIGHT })]),
+      createCell([createParagraph([createTextRun(moraPorcentaje, { bold: true })], { alignment: AlignmentType.CENTER })]),
+      createCell([createParagraph([])], { columnSpan: 4 }),
+    ],
+  }));
+
+  children.push(createBorderedTable(resumoRows, [25, 15, 10, 15, 15, 10, 10]));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== DETALLE DE ACREENCIAS ========== 
+  children.push(createHeading('3. DETALLE DE LAS ACREENCIAS:'));
+  children.push(createParagraph([createTextRun('Se presenta una relación completa y actualizada de todos los acreedores, in el orden de prelación de créditos que señalan los Artículos 2488 and siguientes del Código Civil:')], { alignment: AlignmentType.JUSTIFIED }));
+  
+  acreencias.forEach((a, idx) => {
+    const nombreAcreedor = (a.acreedor && (typeof a.acreedor === 'object' ? (a.acreedor.nombre || '') : a.acreedor)) || 'No reporta';
+    const detalleData = [
+        ['Nombre', nombreAcreedor],
+        ['Tipo de Documento', a.acreedor?.tipoDoc || 'C.C.'],
+        ['No. de Documento', safe((a.acreedor && (a.acreedor.nit || a.acreedor.nitCc || a.acreedor.documento)) || a.documento || '')],
+        ['Dirección de notificación judicial', (a.acreedor && a.acreedor.direccion) || safe(a.direccion)],
+        ['País', 'Colombia'],
+        ['Departamento', (a.acreedor && a.acreedor.departamento) || safe(a.departamento,)],
+        ['Ciudad', (a.acreedor && a.acreedor.ciudad) || safe(a.ciudad,)],
+        ['Dirección de notificación electrónica', (a.acreedor && a.acreedor.email) || safe(a.email)],
+        ['Teléfono', (a.acreedor && a.acreedor.telefono) || safe(a.telefono)],
+        ['Tipo de Acreencia', safe(a.tipoAcreencia)],
+        ['Naturaleza del crédito', safe(a.naturalezaCredito)],
+        ['Descripción del crédito', safe(a.descripcionCredito)],
+        ['Valor in capital', formatCurrency(a.capital)],
+        ['Valor in interés corriente', a.valorTotalInteresCorriente > 0 ? formatCurrency(a.valorTotalInteresCorriente) : 'Se desconoce esta información'],
+        ['Tasa de interés corriente', safe(a.tasaInteresCorriente)],
+        ['Tipo de interés corriente', safe(a.tipoInteresCorriente)],
+        ['Cuantía total de la obligación', formatCurrency((Number(a.capital||0) + Number(a.valorTotalInteresCorriente||0) + Number(a.valorTotalInteresMoratorio||0)))],
+        ['¿El pago del crédito se está realizando mediante libranza?', a.pagoPorLibranza ? 'SI' : 'NO'],
+        ['Número de días in mora', a.creditoEnMora ? 'Más de 90 días' : ''],
+        ['Más de 90 días in mora', a.creditoEnMora ? 'SI' : 'No'],
+        ['Valor in interes moratorio', a.valorTotalInteresMoratorio > 0 ? formatCurrency(a.valorTotalInteresMoratorio) : 'Se desconoce esta información'],
+        ['Tasa de interés moratorio', safe(a.tasaInteresMoratorio)],
+        ['Tipo de interés moratorio', safe(a.tipoInteresMoratorio)],
+        ['Fecha de otorgamiento', formatDate(a.fechaOtorgamiento)],
+        ['Fecha de vencimiento', formatDate(a.fechaVencimiento)]
+    ];
+    const tableRows = detalleData.map(([label, value]) => new TableRow({ cantSplit: true, children: [createCell([createParagraph([createTextRun(label)])]), createCell([createParagraph([createTextRun(value)])])] }));
+    tableRows.unshift(new TableRow({ cantSplit: true, children: [createCell([createParagraph([createTextRun(`Acreencia No. ${idx + 1}`, { bold: true })], { alignment: AlignmentType.CENTER })], { columnSpan: 2 })] }));
+    children.push(createBorderedTable(tableRows, [50, 50]));
+    children.push(createParagraph([createTextRun('')]));
+  });
+
+  // ========== BIENES ========== 
+  children.push(createHeading('4. RELACIÓN E INVENTARIO DE LOS BIENES MUEBLES E INMUEBLES:'));
+  children.push(createParagraph([createTextRun('Se presenta una relación completa and detallada de los bienes muebles e inmuebles:')], { alignment: AlignmentType.JUSTIFIED, indentation: { left: 720 } }));
+  children.push(createHeading('4.1 Bienes Muebles', true));
+  if (!bienesMuebles.length) {
+    children.push(createParagraph([createTextRun('Se manifiesta bajo la gravedad de juramento que no se poseen Bienes Muebles.')], { indentation: { left: 720 } }));
+  } else {
+    bienesMuebles.forEach((b, i) => {
+        const bienData = [
+            ['Descripción', safe(b.descripcion)],
+            ['Clasificación', safe(b.clasificacion)],
+            ['Marca', safe(b.marca)],
+        ];
+        if (b.clasificacion === 'Vehiculo') {
+            bienData.push(['Modelo', safe(b.modelo)]);
+            bienData.push(['Placa', safe(b.placa)]);
+        }
+        bienData.push(['Avalúo Comercial Estimado', formatCurrency(b.avaluoComercial)]);
+        const tableRows = bienData.map(([label, value]) => new TableRow({ children: [createCell([createParagraph([createTextRun(label)])]), createCell([createParagraph([createTextRun(value)])])] }));
+        tableRows.unshift(new TableRow({ children: [createCell([createParagraph([createTextRun(`Bien Mueble No. ${i + 1}`, { bold: true })], { alignment: AlignmentType.CENTER })], { columnSpan: 2 })] }));
+        children.push(createBorderedTable(tableRows, [50, 50]));
+        children.push(createParagraph([createTextRun('')]));
+    });
+  }
+  
+  children.push(createHeading('4.2 Bienes Inmuebles', true));
+  if (!bienesInmuebles.length) {
+    children.push(createParagraph([createTextRun('Se manifiesta bajo la gravedad de juramento que no se poseen Bienes Inmuebles.')], { indentation: { left: 720 } }));
+  } else {
+     bienesInmuebles.forEach((b, i) => {
+        const bienData = [
+            ['Descripción', safe(b.descripcion)],
+            ['Matrícula Inmobiliaria', safe(b.matricula)],
+            ['Dirección', safe(b.direccion)],
+            ['Ciudad', safe(b.ciudad)],
+            ['Avalúo Comercial', formatCurrency(b.avaluoComercial)],
+        ];
+        const tableRows = bienData.map(([label, value]) => new TableRow({ children: [createCell([createParagraph([createTextRun(label)])]), createCell([createParagraph([createTextRun(value)])])] }));
+        tableRows.unshift(new TableRow({ children: [createCell([createParagraph([createTextRun(`Bien Inmueble No. ${i + 1}`, { bold: true })], { alignment: AlignmentType.CENTER })], { columnSpan: 2 })] }));
+        children.push(createBorderedTable(tableRows, [50, 50]));
+        children.push(createParagraph([createTextRun('')]));
+    });
+  }
+
+  // ========== PROCESOS JUDICIALES ========== 
+  children.push(createHeading('5. PROCESOS JUDICIALES, ADMINISTRATIVOS O PRIVADOS'));
+  if (!procesosJudiciales.length) {
+      children.push(createParagraph([createTextRun('Se manifiesta bajo la gravedad de juramento que no se tienen procesos in contra.')], { indentation: { left: 720 } }));
+  } else {
+      procesosJudiciales.forEach((p, idx) => {
+          const tableRows = [
+              ['Tipo de Proceso', safe(p.tipoProceso)],
+              ['Demandante', safe(p.demandante)],
+              ['Demandado', safe(p.demandado)],
+              ['Valor', formatCurrency(p.valor)],
+              ['Juzgado', safe(p.juzgado)],
+              ['Radicado', safe(p.radicado)],
+          ].map(([label, value]) => new TableRow({ children: [createCell([createParagraph([createTextRun(label)])]), createCell([createParagraph([createTextRun(value)])])] }));
+          tableRows.unshift(new TableRow({ children: [createCell([createParagraph([createTextRun(`Proceso Judicial No. ${safe(p.radicado)}`, { bold: true })], { alignment: AlignmentType.CENTER })], { columnSpan: 2 })] }));
+          children.push(createBorderedTable(tableRows, [50, 50]));
+          children.push(createParagraph([createTextRun('')]));
+      });
+  }
+
+  // ========== OBLIGACIONES ALIMENTARIAS ========== 
+  children.push(createHeading('6. OBLIGACIONES ALIMENTARIAS'));
+  if (!obligacionesAlimentarias.length) {
+      children.push(createParagraph([createTextRun('No se reportan obligaciones alimentarias.')], { indentation: { left: 720 } }));
+  } else {
+      obligacionesAlimentarias.forEach((o, idx) => {
+          const obligacionData = [
+              ['Beneficiario', safe(o.beneficiario)],
+              ['Parentesco', safe(o.parentesco)],
+              ['Cuantía Mensual', formatCurrency(o.cuantia)],
+              ['Estado de la Obligación', safe(o.estadoObligacion)],
+              ['¿Demandada?', o.obligacionDemandada ? 'SI' : 'NO'],
+          ];
+          const tableRows = obligacionData.map(([label, value]) => new TableRow({ children: [createCell([createParagraph([createTextRun(label)])]), createCell([createParagraph([createTextRun(value)])])] }));
+          tableRows.unshift(new TableRow({ children: [createCell([createParagraph([createTextRun(`Obligación Alimentaria No. ${idx + 1}`, { bold: true })], { alignment: AlignmentType.CENTER })], { columnSpan: 2 })] }));
+          children.push(createBorderedTable(tableRows, [50, 50]));
+          children.push(createParagraph([createTextRun('')]));
+      });
+  }
+
+  // ========== RELACIÓN DE GASTOS ========== 
+  children.push(createHeading('7. RELACIÓN DE GASTOS DE SUBSISTENCIA:'));
+  const gastosLabels = { alimentacion: 'Alimentación', salud: 'Salud', arriendo: 'Arriendo', serviciosPublicos: 'Servicios Públicos', educacion: 'Educación', transporte: 'Transporte', conservacionBienes: 'Conservación de Bienes', otros: 'Otros Gastos' };
+  const gastosPersonales = infoFin.gastosPersonales || {};
+  let totalGastos = 0;
+  const gastosRows = [];
+  for (const key in gastosPersonales) {
+      const value = parseFloat(gastosPersonales[key]);
+      if (value > 0 && gastosLabels[key]) {
+          gastosRows.push(new TableRow({ children: [createCell([createParagraph([createTextRun(gastosLabels[key])])]), createCell([createParagraph([createTextRun(formatCurrency(value))])])] }));
+          totalGastos += value;
+      }
+  }
+  if (gastosRows.length === 0) {
+      gastosRows.push(new TableRow({ children: [createCell([createParagraph([createTextRun('No se reportan gastos.')], { alignment: AlignmentType.CENTER })], { columnSpan: 2 })] }));
+  } else {
+      gastosRows.push(new TableRow({ children: [createCell([createParagraph([createTextRun('TOTAL GASTOS', { bold: true })])]), createCell([createParagraph([createTextRun(formatCurrency(totalGastos), { bold: true })])])] }));
+  }
+  children.push(createBorderedTable(gastosRows, [50, 50]));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== RELACIÓN DE INGRESOS ========== 
+  children.push(createHeading('8. RELACIÓN DE INGRESOS:'));
+  const ingresosData = [
+      ['Ingresos mensuales principal', formatCurrency(Number(infoFin.ingresosActividadPrincipal) || 0)],
+      ['Empleo', infoFin.tieneEmpleo ? 'SI' : 'NO'],
+      ['Descripción', safe(infoFin.descripcionActividadEconomica)],
+  ];
+  const ingresosRowsTable = ingresosData.map(([label, value]) => new TableRow({ children: [createCell([createParagraph([createTextRun(label)])]), createCell([createParagraph([createTextRun(value)])])] }));
+  children.push(createBorderedTable(ingresosRowsTable, [50, 50]));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== SOCIEDAD CONYUGAL ========== 
+  children.push(createHeading('9. INFORMACIÓN SOBRE SOCIEDAD CONYUGAL:'));
+  const sociedadConyugal = solicitud.sociedadConyugal || {};
+  const conyugalData = [];
+  if (sociedadConyugal.activa) {
+      conyugalData.push(['Sociedad vigente', 'Sí']);
+      conyugalData.push(['Nombre Cónyuge', safe(sociedadConyugal.nombreConyuge)]);
+  } else {
+      conyugalData.push(['Sociedad vigente', 'No']);
+  }
+  const conyugalRowsTable = conyugalData.map(([label, value]) => new TableRow({ children: [createCell([createParagraph([createTextRun(label)])]), createCell([createParagraph([createTextRun(value)])])] }));
+  children.push(createBorderedTable(conyugalRowsTable, [50, 50]));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== PROPUESTA DE PAGO ========== 
+  children.push(createHeading('10. PROPUESTA DE PAGO:'));
+  const propuestaTextoDoc = propuestaPago?.descripcion || propuestaPago?.descripcionProyeccion || 'No reporta';
+  children.push(createParagraph([createTextRun(propuestaTextoDoc.toUpperCase())], { alignment: AlignmentType.JUSTIFIED, indentation: { left: 720 } }));
+
+  // ========== SOLICITUD SOBRE LA TARIFA ========== 
+  children.push(createHeading('11. SOLICITUD SOBRE LA TARIFA:'));
+  children.push(createParagraph([createTextRun('Con fundamento in el Articulo 536 de la Ley 1564 de 2012, solicito fijar una tarifa que me permita tener acceso a este procedimiento.')], { alignment: AlignmentType.JUSTIFIED, indentation: { left: 720 } }));
+
+  // ========== FUNDAMENTOS DE DERECHO ========== 
+  children.push(createHeading('12. FUNDAMENTOS DE DERECHO:'));
+  children.push(createParagraph([createTextRun('Conforme al Titulo IV de la Ley 1564 de 2012, Decreto Reglamentario 1069 de 2015.')], { alignment: AlignmentType.JUSTIFIED, indentation: { left: 720 } }));
+
+  // ========== ANEXOS ========== 
+  children.push(createHeading('13. ANEXOS:'));
+  const anexosList = solicitud.anexos || [];
+  anexosList.forEach(anexo => {
+      children.push(createParagraph([createTextRun(`• ${anexo.name || anexo.filename}`)], { indentation: { left: 1080 } }));
+  });
+
+  // ========== NOTIFICACIONES ========== 
+  children.push(createHeading('14. NOTIFICACIONES'));
+  children.push(createParagraph([createTextRun(`Deudor: ${nombreCompleto}`)], { indentation: { left: 720 } }));
+  children.push(createParagraph([createTextRun(`Email: ${safe(deudor.email)}`)], { indentation: { left: 720 } }));
+  children.push(createParagraph([createTextRun(`Teléfono: ${safe(deudor.telefono)}`)], { indentation: { left: 720 } }));
+  children.push(createParagraph([createTextRun('')]));
+
+  // ========== RESUELVE ========== 
+  children.push(createHeading('RESUELVE'));
+  const resuelveItems = [
+    `ACEPTAR e iniciar el proceso de negociación de deudas solicitado por La Señora ${nombreCompleto.toUpperCase()}, identificada con cedula de ciudadanía Numero C.C. ${safe(deudor.cedula)}, expedida in ${safe(deudor.ciudadExpedicion)}.`,
+    `FIJAR como fecha para la audiencia de negociación de pasivos el ${audienceDate.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()}, a las ${audienceDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}, que se llevará a cabo de manera virtual.`,
+    'ORDENAR a la deudora que presente una relación actualizada de cada una de sus obligaciones dentro de los cinco (5) días siguientes.',
+    'NOTIFICAR al deudor y a los acreedores según las direcciones suministradas.',
+    'ORDENAR la suspensión de todo tipo de pagos a los acreedores, incluyendo libranzas y cobros.'
+  ];
+
+  resuelveItems.forEach((item, idx) => {
+    children.push(createParagraph([
+        createTextRun(`${idx + 1}. `, { bold: true }),
+        createTextRun(item)
+    ], { alignment: AlignmentType.JUSTIFIED, spacing: { before: 120 } }));
+  });
+
+  children.push(createParagraph([createTextRun('')], { spacing: { before: 480 } }));
+  children.push(createParagraph([createTextRun('NOTIFÍQUESE,', { bold: true })]));
+  children.push(createParagraph([createTextRun('')], { spacing: { before: 480 } }));
+  children.push(createParagraph([createTextRun('_________________________________', { bold: true })], { alignment: AlignmentType.CENTER }));
+  children.push(createParagraph([createTextRun('Operadora de Insolvencia', { bold: true })], { alignment: AlignmentType.CENTER }));
+
+// ========== MEMBRETE IMAGE ==========
+let headerImage = null;
+
+try {
+  const imagePath = path.join(__dirname, "../assets/membrete_ma.jpg");
+
+  if (fs.existsSync(imagePath)) {
+    const imageBuffer = fs.readFileSync(imagePath);
+
+    headerImage = new ImageRun({
+      data: imageBuffer,
+      transformation: {
+        width: 740,
+        height: 1056,
+      },
+      floating: {
+        horizontalPosition: {
+          relativeFrom: HorizontalPositionRelativeFrom.PAGE,
+          offset: 360000,
+        },
+        verticalPosition: {
+          relativeFrom: VerticalPositionRelativeFrom.PAGE,
+          offset: 360000,
+        },
+        behindDocument: true,
+        allowOverlap: true,
+        wrap: {
+          type: TextWrappingType.NONE,
+          side: TextWrappingSide.BOTH_SIDES,
+        },
+      },
+    });
+  }
+} catch (error) {
+  console.error("Error reading membrete image:", error);
+}
+
+// ========== DOCUMENT ==========
+const docInstance = new Document({
+  creator: "MenduzLegalGroup",
+  title: `Admisión de Insolvencia - ${nombreCompleto}`,
+
+  styles: {
+    paragraph: {
+      run: {
+        font: FONT_FAMILY,
+        size: FONT_SIZE,
+      },
+    },
+  },
+
+  sections: [
+    {
+      headers: {
+        default: new Header({
+          children: headerImage
+            ? [
+                new Paragraph({
+                  children: [headerImage],
+                }),
+              ]
+            : [],
+        }),
+      },
+
+      properties: {
+        pageSize: {
+          width: 12240, // Carta (8.5")
+          height: 18720, // Oficio/Folio (13")
+        },
+
+        page: {
+          margin: {
+            top: 2880,
+            right: 1440,
+            bottom: 2160,
+            left: 1440,
+          },
+        },
+      },
+
+      children,
+    },
+  ],
+});
+
+  const buffer = await Packer.toBuffer(docInstance);
+  return buffer;
+}
+
+module.exports = { generateSolicitudDocx, generateConciliacionDocx, generateAdmisionDocx };

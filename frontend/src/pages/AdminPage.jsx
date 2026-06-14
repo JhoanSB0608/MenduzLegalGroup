@@ -1690,6 +1690,26 @@ const AdminPage = () => {
         }
     },
     {
+        id: 'admision',
+        header: 'Admisión',
+        cell: ({ row }) => {
+            const { original } = row;
+            if (original.tipoSolicitud.startsWith('Solicitud de Insolvencia')) {
+                return (
+                    <Tooltip title="Descargar Auto de Admisión">
+                        <IconButton 
+                            onClick={() => handleDownload(original._id, original.tipoSolicitud, 'admision')}
+                            sx={{ color: theme.palette.success.main }}
+                        >
+                            <DescriptionIcon />
+                        </IconButton>
+                    </Tooltip>
+                );
+            }
+            return null;
+        }
+    },
+    {
         id: 'convocantes',
         header: 'Convocantes',
         cell: ({ row }) => {
