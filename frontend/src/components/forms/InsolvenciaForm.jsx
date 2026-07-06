@@ -39,6 +39,12 @@ import SignatureCanvas from 'react-signature-canvas';
 import LocationSelector from './LocationSelector';
 import { getAcreedores } from '../../services/acreedorService';
 import { uploadFile } from '../../services/fileStorageService';
+import {
+  getEntidadesPromotoras,
+  getSedes,
+  saveEntidadPromotora,
+  saveSede,
+} from '../../services/catalogosService';
 
 // Glassmorphism Card Component
 const GlassCard = ({ children, sx = {}, hover = true, ...props }) => {
@@ -285,7 +291,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
       bienesMuebles: [],
       bienesInmuebles: [],
       sociedadConyugal: { activa: false, disuelta: false },
-      informacionFinanciera: { gastosPersonales: {}, obligacionesAlimentarias: [], procesosJudiciales: [] },
+      informacionFinanciera: { gastosPersonales: { gastosAdicionales: [] }, obligacionesAlimentarias: [], procesosJudiciales: [] },
       propuestaPago: { tipoNegociacion: 'texto' },
       noPoseeBienes: false,
       anexos: [],
@@ -300,6 +306,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
   const { fields: procesosFields, append: appendProceso, remove: removeProceso } = useFieldArray({ control, name: "informacionFinanciera.procesosJudiciales" });
   const { fields: causasFields, append: appendCausa, remove: removeCausa } = useFieldArray({ control, name: "causas.lista" });
   const { fields: anexosFields, append: appendAnexo, remove: removeAnexo } = useFieldArray({ control, name: "anexos" });
+  const { fields: gastosAdicionalesFields, append: appendGastoAdicional, remove: removeGastoAdicional } = useFieldArray({ control, name: "informacionFinanciera.gastosPersonales.gastosAdicionales" });
 
   const updateGastosPersonasCargo = () => {
     const obligaciones = getValues('informacionFinanciera.obligacionesAlimentarias');
@@ -311,6 +318,28 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
 
   const [projectionData, setProjectionData] = useState([]);
   const { data: acreedoresData, isLoading } = useQuery({ queryKey: ['acreedores'], queryFn: () => getAcreedores({ pageIndex: 0, pageSize: 1000, sorting: JSON.stringify([{ id: 'nombre', desc: false }]) }) });
+
+  // Catálogos: entidades promotoras y sedes guardadas
+  const { data: entidadesPromotorasData, refetch: refetchEntidades } = useQuery({
+    queryKey: ['entidadesPromotoras'],
+    queryFn: getEntidadesPromotoras,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+  });
+  const { data: sedesData, refetch: refetchSedes } = useQuery({
+    queryKey: ['sedes'],
+    queryFn: getSedes,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+  });
+
+  // Opciones formateadas para CreatableSelect
+  const entidadesPromotorasOptions = (entidadesPromotorasData || []).map((e) => ({
+    label: e.nombre,
+    value: e.nombre,
+  }));
+  const sedesOptions = (sedesData || []).map((s) => ({
+    label: s.nombre,
+    value: s.nombre,
+  }));
   const [tabValue, setTabValue] = useState(0);
   const [validationError, setValidationError] = useState('');
   const [savedSections, setSavedSections] = useState({
@@ -502,6 +531,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
           'informacionFinanciera.tipoEmpleo',
           'informacionFinanciera.ingresosOtrasActividades',
           'informacionFinanciera.gastosPersonales',
+          'informacionFinanciera.gastosPersonales.gastosAdicionales',
           'informacionFinanciera.obligacionesAlimentarias',
           'informacionFinanciera.obligacionesAlimentarias.tipoIdentificacion',
           'informacionFinanciera.procesosJudiciales',
@@ -532,7 +562,47 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
 
     if (isValid) {
       setValidationError('');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
+
+      // Si se está guardando la sección 'sede', persistir entidad y sede en catálogos
+      if (sectionName === 'sede') {
+        try {
+          const sedeValues = getValues('sede');
+          const entidadValue = sedeValues?.entidadPromotora;
+          const sedeCentroValue = sedeValues?.sedeCentro;
+
+          const savePromises = [];
+
+          if (entidadValue && entidadValue.trim()) {
+            savePromises.push(
+              saveEntidadPromotora(entidadValue).then(() =>
+                console.log(`[Catalogos] Entidad promotora guardada: "${entidadValue}"`)
+              ).catch((err) =>
+                console.warn('[Catalogos] No se pudo guardar la entidad promotora:', err.message)
+              )
+            );
+          }
+
+          if (sedeCentroValue && sedeCentroValue.trim()) {
+            savePromises.push(
+              saveSede(sedeCentroValue).then(() =>
+                console.log(`[Catalogos] Sede guardada: "${sedeCentroValue}"`)
+              ).catch((err) =>
+                console.warn('[Catalogos] No se pudo guardar la sede:', err.message)
+              )
+            );
+          }
+
+          // Esperar a que ambos terminen y actualizar la caché
+          await Promise.all(savePromises);
+          refetchEntidades();
+          refetchSedes();
+        } catch (err) {
+          // No bloquear el flujo si falla el guardado de catálogos
+          console.warn('[Catalogos] Error al persistir catálogos de sede:', err.message);
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate save
       setSavedSections(prev => ({ ...prev, [sectionName]: true }));
       if (nextTabIndex !== undefined) {
         setTabValue(nextTabIndex);
@@ -639,7 +709,8 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
     'arriendoOficina', 'cuotaSeguridadSocial', 'cuotaAdminPropiedadHorizontal',
     'cuotaLeasingVehiculo', 'cuotaLeasingOficina', 'seguros', 'vestuario',
     'recreacion', 'gastosPersonasCargo', 'otros'
-  ].reduce((sum, key) => sum + (parseFloat(watchedGastos?.[key]) || 0), 0);
+  ].reduce((sum, key) => sum + (parseFloat(watchedGastos?.[key]) || 0), 0)
+  + (watchedGastos?.gastosAdicionales || []).reduce((sum, g) => sum + (parseFloat(g?.valor) || 0), 0);
 
   console.log('Total Gastos:', totalGastos);
 
@@ -1554,9 +1625,12 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                           <CreatableSelect
                             {...field}
                             isClearable
+                            options={entidadesPromotorasOptions}
                             value={field.value ? { label: field.value, value: field.value } : null}
                             onChange={(option) => field.onChange(option ? option.value : '')}
                             placeholder="Seleccione o ingrese la entidad promotora"
+                            noOptionsMessage={() => 'Ingrese una nueva entidad'}
+                            formatCreateLabel={(inputValue) => `Crear: "${inputValue}"`}
                             styles={{
                               control: (base) => ({
                                 ...base,
@@ -1584,9 +1658,12 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                           <CreatableSelect
                             {...field}
                             isClearable
+                            options={sedesOptions}
                             value={field.value ? { label: field.value, value: field.value } : null}
                             onChange={(option) => field.onChange(option ? option.value : '')}
                             placeholder="Seleccione o ingrese la sede / centro"
+                            noOptionsMessage={() => 'Ingrese una nueva sede'}
+                            formatCreateLabel={(inputValue) => `Crear: "${inputValue}"`}
                             styles={{
                               control: (base) => ({
                                 ...base,
@@ -3267,7 +3344,6 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                           { name: 'vestuario', label: 'Vestuario' },
                           { name: 'recreacion', label: 'Recreación' },
                           { name: 'gastosPersonasCargo', label: 'Gastos Personas a Cargo' },
-                          { name: 'otros', label: 'Otros Gastos' },
                         ].map((gasto) => (
                           <Grid item xs={6} sm={4} key={gasto.name}>
                             <GlassTextField
@@ -3283,6 +3359,161 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
                           </Grid>
                         ))}
                       </Grid>
+
+                      {/* ── Gastos adicionales personalizados ── */}
+                      <Box sx={{ mt: 3 }}>
+                        <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                              Gastos Adicionales
+                            </Typography>
+                            <Chip
+                              label={`${gastosAdicionalesFields.length} ítem${gastosAdicionalesFields.length !== 1 ? 's' : ''}`}
+                              size="small"
+                              sx={{
+                                background: alpha(tabsConfig[5].color, 0.12),
+                                color: tabsConfig[5].color,
+                                fontWeight: 600,
+                                fontSize: '0.7rem',
+                              }}
+                            />
+                          </Stack>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<AddIcon />}
+                            onClick={() => appendGastoAdicional({ nombre: '', valor: '' })}
+                            sx={{
+                              borderRadius: '10px',
+                              borderColor: alpha(tabsConfig[5].color, 0.4),
+                              color: tabsConfig[5].color,
+                              fontWeight: 600,
+                              textTransform: 'none',
+                              '&:hover': {
+                                borderColor: tabsConfig[5].color,
+                                background: alpha(tabsConfig[5].color, 0.08),
+                              },
+                            }}
+                          >
+                            Agregar gasto personalizado
+                          </Button>
+                        </Stack>
+
+                        {gastosAdicionalesFields.length === 0 ? (
+                          <Box
+                            sx={{
+                              py: 2.5,
+                              px: 3,
+                              borderRadius: '12px',
+                              border: `1px dashed ${alpha(tabsConfig[5].color, 0.25)}`,
+                              textAlign: 'center',
+                              color: 'text.secondary',
+                            }}
+                          >
+                            <Typography variant="body2">
+                              No hay gastos personalizados. Haga clic en «Agregar gasto personalizado» para incluir un nuevo ítem.
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Stack spacing={1.5}>
+                            {gastosAdicionalesFields.map((field, idx) => (
+                              <Box
+                                key={field.id}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  gap: 1.5,
+                                  p: 1.5,
+                                  borderRadius: '12px',
+                                  border: `1px solid ${alpha(tabsConfig[5].color, 0.18)}`,
+                                  background: alpha(tabsConfig[5].color, 0.03),
+                                }}
+                              >
+                                <Chip
+                                  label={idx + 1}
+                                  size="small"
+                                  sx={{
+                                    mt: 1,
+                                    minWidth: 28,
+                                    height: 28,
+                                    background: alpha(tabsConfig[5].color, 0.12),
+                                    color: tabsConfig[5].color,
+                                    fontWeight: 700,
+                                    fontSize: '0.72rem',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                                <Grid container spacing={1.5} sx={{ flex: 1 }}>
+                                  <Grid item xs={12} sm={7}>
+                                    <GlassTextField
+                                      {...register(
+                                        `informacionFinanciera.gastosPersonales.gastosAdicionales.${idx}.nombre`,
+                                        { required: 'El nombre del gasto es requerido' }
+                                      )}
+                                      label="Nombre del gasto"
+                                      placeholder="Ej: Póliza de vida, Medicina prepagada…"
+                                      fullWidth
+                                      error={!!errors?.informacionFinanciera?.gastosPersonales?.gastosAdicionales?.[idx]?.nombre}
+                                      helperText={errors?.informacionFinanciera?.gastosPersonales?.gastosAdicionales?.[idx]?.nombre?.message}
+                                    />
+                                  </Grid>
+                                  <Grid item xs={12} sm={5}>
+                                    <GlassTextField
+                                      {...register(
+                                        `informacionFinanciera.gastosPersonales.gastosAdicionales.${idx}.valor`,
+                                        {
+                                          required: 'El valor es requerido',
+                                          min: { value: 0, message: 'Debe ser ≥ 0' },
+                                        }
+                                      )}
+                                      label="Valor ($)"
+                                      type="number"
+                                      fullWidth
+                                      error={!!errors?.informacionFinanciera?.gastosPersonales?.gastosAdicionales?.[idx]?.valor}
+                                      helperText={errors?.informacionFinanciera?.gastosPersonales?.gastosAdicionales?.[idx]?.valor?.message}
+                                    />
+                                  </Grid>
+                                </Grid>
+                                <Tooltip title="Eliminar gasto" arrow>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => removeGastoAdicional(idx)}
+                                    sx={{
+                                      mt: 0.5,
+                                      color: theme.palette.error.main,
+                                      '&:hover': { background: alpha(theme.palette.error.main, 0.1) },
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            ))}
+
+                            {/* Subtotal gastos adicionales */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                pr: 1,
+                              }}
+                            >
+                              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                Subtotal gastos personalizados:&nbsp;
+                                <strong style={{ color: tabsConfig[5].color }}>
+                                  ${
+                                    (watchedGastos?.gastosAdicionales || []).reduce(
+                                      (s, g) => s + (parseFloat(g?.valor) || 0),
+                                      0
+                                    ).toLocaleString('es-CO')
+                                  }
+                                </strong>
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        )}
+                      </Box>
                     </Box>
 
                     {/* Obligaciones Alimentarias */}

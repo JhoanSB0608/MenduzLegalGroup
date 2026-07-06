@@ -147,6 +147,12 @@ const obligacionAlimentariaSchema = new mongoose.Schema({
   emailBeneficiario: { type: String },
 });
 
+// Sub-schema para gastos adicionales personalizados definidos por el usuario
+const gastoAdicionalSchema = new mongoose.Schema({
+  nombre: { type: String, required: true, trim: true }, // Nombre libre del gasto
+  valor: { type: Number, default: 0 },                  // Valor en pesos
+});
+
 const gastosPersonalesSchema = new mongoose.Schema({
     alimentacion: { type: Number, default: 0 },
     salud: { type: Number, default: 0 },
@@ -167,6 +173,8 @@ const gastosPersonalesSchema = new mongoose.Schema({
     gastosPersonasCargo: { type: Number, default: 0 },
     gastosProcedimientoInsolvencia: { type: Number, default: 0 },
     otros: { type: Number, default: 0 },
+    // Array de gastos adicionales con nombre personalizado
+    gastosAdicionales: { type: [gastoAdicionalSchema], default: [] },
 });
 
 const infoFinancieraSchema = new mongoose.Schema({

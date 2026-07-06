@@ -436,12 +436,22 @@ const tableRows = detalleData.map(
   let totalGastos = 0;
   const gastosRows = [];
   for (const key in gastosPersonales) {
+      if (key === 'gastosAdicionales') continue;
       const value = parseFloat(gastosPersonales[key]);
       if (value > 0 && gastosLabels[key]) {
           gastosRows.push(new TableRow({ children: [createCell([createParagraph([createTextRun(gastosLabels[key], {size: FONT_SIZE_SMALL})])]), createCell([createParagraph([createTextRun(formatCurrency(value), {size: FONT_SIZE_SMALL})])])] }));
           totalGastos += value;
       }
   }
+  const gastosAdicionales = Array.isArray(gastosPersonales.gastosAdicionales) ? gastosPersonales.gastosAdicionales : [];
+  gastosAdicionales.forEach((g) => {
+      const nombre = (g && g.nombre) ? String(g.nombre) : 'Gasto adicional';
+      const value = parseFloat(g && g.valor);
+      if (value > 0) {
+          gastosRows.push(new TableRow({ children: [createCell([createParagraph([createTextRun(`Otro gasto (${nombre})`, {size: FONT_SIZE_SMALL})])]), createCell([createParagraph([createTextRun(formatCurrency(value), {size: FONT_SIZE_SMALL})])])] }));
+          totalGastos += value;
+      }
+  });
   if (gastosRows.length === 0) {
       gastosRows.push(new TableRow({ children: [createCell([createParagraph([createTextRun('No se reportan gastos.', {size: FONT_SIZE_SMALL})], { alignment: AlignmentType.CENTER })], { columnSpan: 2 })] }));
   } else {

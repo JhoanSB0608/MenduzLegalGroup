@@ -806,6 +806,7 @@ function buildDocDefinition(solicitud = {}) {
   let totalGastos = 0;
 
   for (const key in gastosPersonales) {
+    if (key === 'gastosAdicionales') continue;
     const value = parseFloat(gastosPersonales[key]);
     if (value > 0 && gastosLabels[key]) {
       bodyGastos.push([
@@ -815,6 +816,19 @@ function buildDocDefinition(solicitud = {}) {
       totalGastos += value;
     }
   }
+
+  const gastosAdicionales = Array.isArray(gastosPersonales.gastosAdicionales) ? gastosPersonales.gastosAdicionales : [];
+  gastosAdicionales.forEach((g, idx) => {
+    const nombre = (g && g.nombre) ? String(g.nombre) : 'Gasto adicional';
+    const value = parseFloat(g && g.valor);
+    if (value > 0) {
+      bodyGastos.push([
+        { text: `Otro gasto (${nombre})`, fontSize: 8, margin: [4, 2, 2, 2] },
+        { text: formatCurrency(value), fontSize: 8, margin: [4, 2, 2, 2] }
+      ]);
+      totalGastos += value;
+    }
+  });
 
   if (bodyGastos.length === 1) {
     bodyGastos.push([

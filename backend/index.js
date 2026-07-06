@@ -18,6 +18,7 @@ const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const archiverRoutes = require("./routes/archiverRoutes");
 const gcsRoutes = require("./routes/gcsRoutes");
+const catalogosRoutes = require("./routes/catalogosRoutes");
 const path = require("path");
 
 // Passport config
@@ -95,6 +96,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/archiver", archiverRoutes);
 app.use("/api/gcs", gcsRoutes);
+app.use("/api/catalogos", catalogosRoutes);
 
 //
 // =============================
