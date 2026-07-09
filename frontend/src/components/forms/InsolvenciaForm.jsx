@@ -691,17 +691,48 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
 
 
   // Cálculos
-  const totalCapital = watchedAcreencias?.reduce((sum, a) => sum + (parseFloat(a.capital) || 0), 0) || 0;
-  const totalMora = watchedAcreencias?.filter(a => a.creditoEnMora === true).reduce((sum, a) => sum + (parseFloat(a.valorTotalInteresMoratorio) || 0), 0) || 0;
-  const capitalEnMora = watchedAcreencias?.filter(a => a.creditoEnMora === true).reduce((sum, a) => sum + (parseFloat(a.capital) || 0), 0) || 0;
-  const porcentajeMora = totalCapital > 0 ? (capitalEnMora / totalCapital * 100) : 0;
+// 1. Total del capital de TODAS las acreencias (para el panorama general)
+const totalCapital = watchedAcreencias?.reduce((sum, a) => sum + (parseFloat(a.capital) || 0), 0) || 0;
 
-  const validacionInsolvencia = {
-    dosOMasObligaciones: watchedAcreencias?.length >= 2,
-    hayCreditosEnMora: capitalEnMora > 0,
-    pasivoEnMoraSuperior30Pct: porcentajeMora > 30,
-  };
-  const cumpleRequisitos = validacionInsolvencia.dosOMasObligaciones && validacionInsolvencia.hayCreditosEnMora && validacionInsolvencia.pasivoEnMoraSuperior30Pct;
+// 2. Intereses de mora totales (solo informativo)
+const totalMora = watchedAcreencias?.filter(a => a.creditoEnMora === true).reduce((sum, a) => sum + (parseFloat(a.valorTotalInteresMoratorio) || 0), 0) || 0;
+
+// 3. Capital en Mora VÁLIDO para insolvencia (Mora > 90 días Y NO es libranza)
+const capitalEnMora = watchedAcreencias?.reduce((sum, a) => {
+  const enMora90 = a.creditoEnMora && (a.moraMas90Dias || parseInt(a.diasDeMora, 10) > 90);
+  const esLibranza = a.pagoPorLibranza === true;
+
+  // Si está en mora de más de 90 días y NO es libranza, se suma al pasivo en mora definitivo
+  if (enMora90 && !esLibranza) {
+    return sum + (parseFloat(a.capital) || 0);
+  }
+  return sum;
+}, 0) || 0;
+
+// 4. Porcentaje de mora corregido excluyendo del denominador los créditos por libranza
+const capitalParaPorcentaje = watchedAcreencias?.reduce((sum, a) => {
+  return a.pagoPorLibranza === true ? sum : sum + (parseFloat(a.capital) || 0);
+}, 0) || 0;
+
+const porcentajeMora = capitalParaPorcentaje > 0 ? (capitalEnMora / capitalParaPorcentaje * 100) : 0;
+
+// 5. Conteo estricto de obligaciones válidas en mora (> 90 días y NO libranza)
+const obligacionesEnMoraValidas = watchedAcreencias?.filter(a => {
+  const enMora90 = a.creditoEnMora && (a.moraMas90Dias || parseInt(a.diasDeMora, 10) > 90);
+  const esLibranza = a.pagoPorLibranza === true;
+  return enMora90 && !esLibranza;
+}).length || 0;
+
+// 6. Validación final de los requisitos legales
+const validacionInsolvencia = {
+  dosOMasObligaciones: obligacionesEnMoraValidas >= 2,
+  hayCreditosEnMora: capitalEnMora > 0,
+  pasivoEnMoraSuperior30Pct: porcentajeMora > 30,
+};
+
+const cumpleRequisitos = validacionInsolvencia.dosOMasObligaciones && 
+                         validacionInsolvencia.hayCreditosEnMora && 
+                         validacionInsolvencia.pasivoEnMoraSuperior30Pct;
 
   const totalGastos = [
     'alimentacion', 'salud', 'arriendo', 'serviciosPublicos', 'educacion',
