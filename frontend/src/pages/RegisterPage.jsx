@@ -4,12 +4,13 @@ import { useForm } from 'react-hook-form';
 import { AuthContext } from '../App';
 import GoogleIcon from '@mui/icons-material/Google';
 import { API_BASE_URL } from '../services/userService';
-import { handleAxiosError } from '../utils/alert';
+import { handleAxiosError, showSuccess } from '../utils/alert';
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
   const { register: registerUser } = useContext(AuthContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,6 +23,8 @@ const RegisterPage = () => {
     try {
       const result = await registerUser(data.fullName, data.email, data.password);
       console.log('[RegisterPage] Registro exitoso. Respuesta:', result);
+      showSuccess(result.message || 'Registro exitoso. Por favor, verifica tu correo electrónico para activar tu cuenta.');
+      navigate('/login');
     } catch (error) {
       console.error('[RegisterPage] Error detectado en el bloque catch:', error);
       if (error.response) {
