@@ -1670,7 +1670,6 @@ const AdminPage = () => {
         const status = getValue();
         // Old documents without status field are treated as completed
         const isDraft = status === 'draft';
-        const isCompleted = status === 'completed' || !status;
         return (
           <Chip
             label={isDraft ? 'Borrador' : 'Completado'}
