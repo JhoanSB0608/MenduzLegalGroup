@@ -32,8 +32,8 @@ import {
 } from '@mui/icons-material';
 import InsolvenciaForm from '../components/forms/InsolvenciaForm';
 import ConciliacionUnificadaForm from '../components/forms/ConciliacionUnificadaForm';
-import { createSolicitud, downloadSolicitudDocument } from '../services/solicitudService';
-import { createConciliacion, downloadConciliacionDocument } from '../services/conciliacionService';
+import { downloadSolicitudDocument } from '../services/solicitudService';
+import { downloadConciliacionDocument } from '../services/conciliacionService';
 import { toast } from 'react-toastify';
 import { handleAxiosError, showSuccess } from '../utils/alert';
 
@@ -130,31 +130,16 @@ const NuevaSolicitudPage = () => {
     setCreatedSolicitudId(null);
   };
 
-  const handleFormSubmit = async (data) => {
-    try {
-      setError('');
-      setSuccess('');
-      setCreatedSolicitudId(null);
-      
-      console.log("[NuevaSolicitudPage] Data received from form:", data);
-
-      let createdSolicitud;
-      if (tipoSeleccionado === 'Solicitud de Conciliación Unificada') {
-        // The data object from the form is sent directly
-        createdSolicitud = await createConciliacion(data);
-      } else {
-        // Add the tipoSolicitud to the data object and send directly
-        const dataToSend = { ...data, tipoSolicitud: tipoSeleccionado };
-        createdSolicitud = await createSolicitud(dataToSend);
-      }
-      
+  const handleFormSubmit = (result) => {
+    if (result && result._id) {
       showSuccess('¡Éxito! La solicitud ha sido guardada correctamente.');
-      setCreatedSolicitudId(createdSolicitud._id);
+      setCreatedSolicitudId(result._id);
       setFormResetToken(Date.now());
-      setSuccess('¡Éxito! La solicitud ha sido guardada correctamente.'); // Keep to show download buttons
-    } catch (err) {
-      handleAxiosError(err, 'No se pudo guardar la solicitud. Intente de nuevo.');
-      setError(err.message || 'No se pudo guardar la solicitud. Intente de nuevo.'); // Keep for local error display if needed
+      setSuccess('¡Éxito! La solicitud ha sido guardada correctamente.');
+      setError('');
+    } else {
+      handleAxiosError({ message: 'Error al guardar la solicitud' }, 'No se pudo guardar la solicitud. Intente de nuevo.');
+      setError('No se pudo guardar la solicitud. Intente de nuevo.');
     }
   };
 

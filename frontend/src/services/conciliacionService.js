@@ -84,6 +84,39 @@ export const updateConciliacion = async (solicitudId, payload) => {
   }
 };
 
-const conciliacionService = { createConciliacion, downloadConciliacionDocument, getConciliacionById, updateConciliacion };
+export const createDraftConciliacion = async (payload) => {
+  try {
+    const config = getConfig({ body: payload });
+    const response = await axios.post(`${API_URL}/draft`, payload, config);
+    return response.data;
+  } catch (err) {
+    console.error('Error creating draft conciliacion:', err.response?.data || err.message || err);
+    throw err.response?.data || { message: err.message || 'Error creando borrador' };
+  }
+};
+
+export const saveConciliacionSection = async (conciliacionId, payload) => {
+  try {
+    const config = getConfig({ body: payload });
+    const response = await axios.patch(`${API_URL}/${conciliacionId}/section`, payload, config);
+    return response.data;
+  } catch (err) {
+    console.error('Error saving conciliacion section:', err.response?.data || err.message || err);
+    throw err.response?.data || { message: err.message || 'Error guardando sección' };
+  }
+};
+
+export const deleteConciliacion = async (conciliacionId) => {
+  try {
+    const config = getConfig();
+    const response = await axios.delete(`${API_URL}/${conciliacionId}`, config);
+    return response.data;
+  } catch (err) {
+    console.error('Error deleting conciliacion:', err.response?.data || err.message || err);
+    throw err.response?.data || { message: err.message || 'Error eliminando conciliación' };
+  }
+};
+
+const conciliacionService = { createConciliacion, downloadConciliacionDocument, getConciliacionById, updateConciliacion, createDraftConciliacion, saveConciliacionSection, deleteConciliacion };
 
 export default conciliacionService;

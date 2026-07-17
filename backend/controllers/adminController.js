@@ -78,8 +78,17 @@ const getSolicitudes = async (req, res) => {
     // Build query and sort options from request
     const parsedFilters = JSON.parse(filters);
     const query = {};
-    if (parsedFilters.length > 0) {
-      query.$and = parsedFilters.map(filter => {
+
+    // Separate status filter from text filters
+    const textFilters = parsedFilters.filter(f => f.id !== 'status');
+    const statusFilter = parsedFilters.find(f => f.id === 'status');
+
+    if (statusFilter) {
+      query.status = statusFilter.value;
+    }
+
+    if (textFilters.length > 0) {
+      query.$and = textFilters.map(filter => {
         if (filter.id === 'user.name') { // Corrected filter id
           return { 'user.name': { $regex: filter.value, $options: 'i' } };
         }

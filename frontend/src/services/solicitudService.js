@@ -92,5 +92,38 @@ export const updateSolicitud = async (solicitudId, payload) => {
   }
 };
 
-const solicitudService = { createSolicitud, downloadSolicitudDocument, getSolicitudById, updateSolicitud };
+export const createDraftSolicitud = async (payload) => {
+  try {
+    const config = getConfig();
+    const response = await axios.post(`${API_URL}/draft`, payload, config);
+    return response.data;
+  } catch (err) {
+    console.error('Error creating draft solicitud:', err.response?.data || err.message || err);
+    throw err.response?.data || { message: err.message || 'Error creando borrador' };
+  }
+};
+
+export const saveSolicitudSection = async (solicitudId, payload) => {
+  try {
+    const config = getConfig();
+    const response = await axios.patch(`${API_URL}/${solicitudId}/section`, payload, config);
+    return response.data;
+  } catch (err) {
+    console.error('Error saving section:', err.response?.data || err.message || err);
+    throw err.response?.data || { message: err.message || 'Error guardando sección' };
+  }
+};
+
+export const deleteSolicitud = async (solicitudId) => {
+  try {
+    const config = getConfig();
+    const response = await axios.delete(`${API_URL}/${solicitudId}`, config);
+    return response.data;
+  } catch (err) {
+    console.error('Error deleting solicitud:', err.response?.data || err.message || err);
+    throw err.response?.data || { message: err.message || 'Error eliminando solicitud' };
+  }
+};
+
+const solicitudService = { createSolicitud, downloadSolicitudDocument, getSolicitudById, updateSolicitud, createDraftSolicitud, saveSolicitudSection, deleteSolicitud };
 export default solicitudService;

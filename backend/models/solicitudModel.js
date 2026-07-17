@@ -282,6 +282,18 @@ const solicitudSchema = new mongoose.Schema({
   pruebas: [String],
   notificaciones: { type: String },
 
+  // --- CAMPOS PARA BORRADOR/GUARDADO PARCIAL ---
+  status: {
+    type: String,
+    enum: ['draft', 'completed'],
+    default: 'draft',
+  },
+  progreso: {
+    type: Map,
+    of: Boolean,
+    default: {},
+  },
+
 }, { timestamps: true });
 
 const Solicitud = mongoose.model('Solicitud', solicitudSchema);

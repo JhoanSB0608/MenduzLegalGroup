@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getConciliacionById, updateConciliacion } from '../services/conciliacionService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getConciliacionById } from '../services/conciliacionService';
 import ConciliacionUnificadaForm from '../components/forms/ConciliacionUnificadaForm';
 import { Container, CircularProgress, Alert, Typography, Box } from '@mui/material';
 
@@ -21,25 +21,15 @@ const EditarConciliacionPage = () => {
     enabled: !!id,
   });
 
-  const { mutate: update, isLoading: isUpdating } = useMutation({
-    mutationFn: (solicitudData) => {
-      console.log('[EditarConciliacionPage] Updating conciliacion with data:', solicitudData);
-      return updateConciliacion(id, solicitudData);
-    },
-    onSuccess: () => {
-      console.log('[EditarConciliacionPage] Conciliacion updated successfully.');
-      queryClient.invalidateQueries(['solicitudes']); // This should be updated to a new query key if it exists
+  const handleSubmit = (result) => {
+    if (result && result._id) {
+      console.log('[EditarConciliacionPage] Conciliacion actualizada correctamente.');
+      queryClient.invalidateQueries(['solicitudes']);
       queryClient.invalidateQueries(['conciliacion', id]);
       navigate('/admin');
-    },
-    onError: (error) => {
-      console.error('[EditarConciliacionPage] Error actualizando la solicitud de conciliación:', error);
-    },
-  });
-
-  const handleSubmit = (data) => {
-    console.log("[EditarConciliacionPage] Data received from form:", data);
-    update(data);
+    } else {
+      console.error('[EditarConciliacionPage] Error actualizando la solicitud de conciliación');
+    }
   };
 
   if (isLoading) {
@@ -71,7 +61,6 @@ const EditarConciliacionPage = () => {
         <ConciliacionUnificadaForm
           onSubmit={handleSubmit}
           initialData={solicitud}
-          isUpdating={isUpdating}
         />
       )}
     </Container>

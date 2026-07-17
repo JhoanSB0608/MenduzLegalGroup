@@ -29,7 +29,8 @@ import {
 } from '@mui/icons-material';
 import SignatureCanvas from 'react-signature-canvas';
 import LocationSelector from './LocationSelector';
-import { uploadFile } from '../../services/fileStorageService'; // Import uploadFile
+import { uploadFile } from '../../services/fileStorageService';
+import { createConciliacion, createDraftConciliacion, saveConciliacionSection, updateConciliacion } from '../../services/conciliacionService';
 
 // --- Reusable Glassmorphism Components ---
 const GlassCard = ({ children, sx = {}, hover = true, ...props }) => (
@@ -298,9 +299,9 @@ const DescriptionModal = ({ open, onClose, onConfirm, defaultValue = '' }) => {
   );
 };
 
-const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
+const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdating }) => {
   const theme = useTheme();
-  const { register, control, handleSubmit, watch, setValue, trigger, formState: { errors }, reset, setError } = useForm({
+  const { register, control, handleSubmit, watch, setValue, getValues, trigger, formState: { errors }, reset, setError } = useForm({
     defaultValues: {
       sede: {},
       infoGeneral: { asuntoJuridicoDefinible: false, cuantiaIndeterminada: false, cuantiaDetallada: false },
@@ -319,6 +320,8 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
   const { fields: pretensionesFields, append: appendPretension, remove: removePretension } = useFieldArray({ control, name: "pretensiones", rules: { minLength: { value: 1, message: "Debe agregar al menos una pretensión" }} });
   const { fields: anexosFields, append: appendAnexo, remove: removeAnexo } = useFieldArray({ control, name: "anexos" });
 
+  const TIPO_SOLICITUD_CONCILIACION = 'Solicitud de Conciliación Unificada';
+
   const [tabValue, setTabValue] = useState(0);
   const [validationError, setValidationError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -335,6 +338,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
       anexos: false,
       firma: false,
   });
+  const [solicitudId, setSolicitudId] = useState(initialData?._id || null);
 
   const sigCanvas = useRef({});
   const signatureContainerRef = useRef(null);
@@ -389,11 +393,22 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
         }
       }
 
-      // Mark all sections as saved since we are editing
-      setSavedSections({
-          sede: true, infoGeneral: true, convocantes: true, convocados: true,
-          hechos: true, pretensiones: true, anexos: true, firma: true,
-      });
+      // If it's a draft, restore progreso from the saved data; otherwise mark all as saved
+      if (initialData.status === 'draft' && initialData.progreso) {
+        const restored = {
+          sede: false, infoGeneral: false, convocantes: false, convocados: false,
+          hechos: false, pretensiones: false, anexos: false, firma: false,
+        };
+        for (const [key, value] of Object.entries(initialData.progreso)) {
+          if (key in restored) restored[key] = value;
+        }
+        setSavedSections(restored);
+      } else {
+        setSavedSections({
+            sede: true, infoGeneral: true, convocantes: true, convocados: true,
+            hechos: true, pretensiones: true, anexos: true, firma: true,
+        });
+      }
     }
   }, [initialData, reset, setValue]);
 
@@ -507,7 +522,46 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
 
     if (isValid) {
       setValidationError('');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
+
+      // --- GUARDADO PARCIAL EN BASE DE DATOS ---
+      try {
+        const currentValues = getValues();
+        const progreso = { ...Object.fromEntries(Object.entries(savedSections).map(([k]) => [k, false])), [sectionName]: true };
+
+        // Strip _id and other meta fields to avoid overwriting them
+        const { _id, __v, createdAt, updatedAt, progreso: _progreso, status: _status, ...cleanValues } = currentValues;
+
+        const dataToSave = {
+          ...cleanValues,
+          tipoSolicitud: TIPO_SOLICITUD_CONCILIACION,
+          status: 'draft',
+          anexos: (currentValues.anexos || []).map(a => ({
+            name: a.name || '',
+            url: a.url || '',
+            descripcion: a.descripcion || '',
+            size: a.size || 0,
+          })),
+          firma: currentValues.firma?.source === 'draw'
+            ? { source: 'draw', data: null }
+            : { source: currentValues.firma?.source || 'draw', data: null, url: currentValues.firma?.url || '' },
+        };
+
+        let result;
+        if (solicitudId) {
+          result = await saveConciliacionSection(solicitudId, { section: dataToSave, progreso });
+        } else {
+          result = await createDraftConciliacion({ ...dataToSave, progreso });
+          setSolicitudId(result._id);
+        }
+
+        console.log(`[ConciliacionUnificadaForm] Sección "${sectionName}" guardada en BD. ID: ${result._id}`);
+      } catch (err) {
+        console.error('[ConciliacionUnificadaForm] Error al guardar sección en BD:', err);
+        setValidationError('Error al guardar la sección. Intente de nuevo.');
+        setIsSaving(false);
+        return;
+      }
+
       setSavedSections(prev => ({ ...prev, [sectionName]: true }));
       if (nextTabIndex !== undefined) {
         setTabValue(nextTabIndex);
@@ -533,6 +587,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
         name: anexo.url ? anexo.name : (anexo.descripcion ? ' ' : anexo.name),
         url: anexo.url || '',
       })),
+      tipoSolicitud: TIPO_SOLICITUD_CONCILIACION,
     };
 
     // Process Signature File
@@ -555,12 +610,26 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating }) => {
             data: sigCanvas.current.getTrimmedCanvas().toDataURL('image/png')
         };
     }
-    // If signatureSource is 'upload' but no new file is selected, and initialData had a URL, keep it.
-    // This implicitly handles the case where initialData.firma.url exists from a previous save.
 
-    setIsUploading(false); // End uploading indicator
-    console.log("[ConciliacionUnificadaForm] Final data being sent to parent onSubmit:", dataToSend);
-    onSubmit(dataToSend); // Pass the processed data object, not FormData
+    try {
+      let result;
+      const progreso = { sede: true, infoGeneral: true, convocantes: true, convocados: true, hechos: true, pretensiones: true, anexos: true, firma: true };
+
+      if (solicitudId) {
+        result = await updateConciliacion(solicitudId, { ...dataToSend, status: 'completed', progreso });
+        console.log(`[ConciliacionUnificadaForm] Draft ${solicitudId} finalizado como completado.`);
+      } else {
+        result = await createConciliacion({ ...dataToSend, status: 'completed', progreso });
+        console.log('[ConciliacionUnificadaForm] Conciliación creada como completada.');
+      }
+
+      setIsUploading(false);
+      onSubmit(result);
+    } catch (err) {
+      setIsUploading(false);
+      console.error('[ConciliacionUnificadaForm] Error al guardar conciliación:', err);
+      setValidationError('Error al guardar la solicitud. Intente de nuevo.');
+    }
   }
 
   const allSectionsSaved = Object.values(savedSections).every(Boolean);

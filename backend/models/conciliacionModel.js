@@ -82,6 +82,18 @@ const conciliacionSchema = new mongoose.Schema({
     pretensiones: [pretensionSchema],
     anexos: [anexoSchema],
     firma: firmaSchema,
+
+    // --- CAMPOS PARA BORRADOR/GUARDADO PARCIAL ---
+    status: {
+        type: String,
+        enum: ['draft', 'completed'],
+        default: 'draft',
+    },
+    progreso: {
+        type: Map,
+        of: Boolean,
+        default: {},
+    },
 }, { timestamps: true });
 
 const Conciliacion = mongoose.model('Conciliacion', conciliacionSchema);

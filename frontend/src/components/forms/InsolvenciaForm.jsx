@@ -45,6 +45,7 @@ import {
   saveEntidadPromotora,
   saveSede,
 } from '../../services/catalogosService';
+import { createSolicitud, createDraftSolicitud, saveSolicitudSection, updateSolicitud } from '../../services/solicitudService';
 
 // Glassmorphism Card Component
 const GlassCard = ({ children, sx = {}, hover = true, ...props }) => {
@@ -252,7 +253,7 @@ const DescriptionModal = ({ open, onClose, onConfirm, defaultValue = '' }) => {
   );
 };
 
-const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
+const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating: _isUpdating }) => {
   const theme = useTheme();
   const selectSx = {
     minWidth: 250,
@@ -340,6 +341,8 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
     label: s.nombre,
     value: s.nombre,
   }));
+  const TIPO_SOLICITUD_INSOLVENCIA = 'Solicitud de Insolvencia Económica de Persona Natural No Comerciante';
+
   const [tabValue, setTabValue] = useState(0);
   const [validationError, setValidationError] = useState('');
   const [savedSections, setSavedSections] = useState({
@@ -354,6 +357,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
     firma: false,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [solicitudId, setSolicitudId] = useState(initialData?._id || null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingAnexos, setUploadingAnexos] = useState({});
   const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -480,17 +484,36 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
         }
       }
 
-      setSavedSections({
-        deudor: true,
-        sede: true,
-        causas: true,
-        acreencias: true,
-        bienes: true,
-        financiera: true,
-        propuesta: true,
-        anexos: true,
-        firma: true,
-      });
+      // If it's a draft, restore progreso from the saved data; otherwise mark all as saved
+      if (initialData.status === 'draft' && initialData.progreso) {
+        const restored = {
+          deudor: false,
+          sede: false,
+          causas: false,
+          acreencias: false,
+          bienes: false,
+          financiera: false,
+          propuesta: false,
+          anexos: false,
+          firma: false,
+        };
+        for (const [key, value] of Object.entries(initialData.progreso)) {
+          if (key in restored) restored[key] = value;
+        }
+        setSavedSections(restored);
+      } else {
+        setSavedSections({
+          deudor: true,
+          sede: true,
+          causas: true,
+          acreencias: true,
+          bienes: true,
+          financiera: true,
+          propuesta: true,
+          anexos: true,
+          firma: true,
+        });
+      }
     }
   }, [initialData, reset]);
 
@@ -592,17 +615,57 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
             );
           }
 
-          // Esperar a que ambos terminen y actualizar la caché
           await Promise.all(savePromises);
           refetchEntidades();
           refetchSedes();
         } catch (err) {
-          // No bloquear el flujo si falla el guardado de catálogos
           console.warn('[Catalogos] Error al persistir catálogos de sede:', err.message);
         }
       }
 
-      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate save
+      // --- GUARDADO PARCIAL EN BASE DE DATOS ---
+      try {
+        const currentValues = getValues();
+        const progreso = { ...Object.fromEntries(Object.entries(savedSections).map(([k]) => [k, false])), [sectionName]: true };
+
+        // Strip _id and other meta fields to avoid overwriting them
+        const { _id, __v, createdAt, updatedAt, progreso: _progreso, status: _status, ...cleanValues } = currentValues;
+
+        const dataToSave = {
+          ...cleanValues,
+          tipoSolicitud: TIPO_SOLICITUD_INSOLVENCIA,
+          status: 'draft',
+          acreencias: (currentValues.acreencias || []).map(a => ({
+            ...a,
+            acreedor: typeof a.acreedor === 'object' && a.acreedor?._id ? a.acreedor._id : a.acreedor,
+          })),
+          anexos: (currentValues.anexos || []).map(a => ({
+            name: a.name || '',
+            url: a.url || '',
+            descripcion: a.descripcion || '',
+            size: a.size || 0,
+          })),
+          firma: currentValues.firma?.source === 'draw'
+            ? { source: 'draw', data: null }
+            : { source: currentValues.firma?.source || 'draw', data: null, url: currentValues.firma?.url || '' },
+        };
+
+        let result;
+        if (solicitudId) {
+          result = await saveSolicitudSection(solicitudId, { section: dataToSave, progreso });
+        } else {
+          result = await createDraftSolicitud({ ...dataToSave, progreso });
+          setSolicitudId(result._id);
+        }
+
+        console.log(`[InsolvenciaForm] Sección "${sectionName}" guardada en BD. ID: ${result._id}`);
+      } catch (err) {
+        console.error('[InsolvenciaForm] Error al guardar sección en BD:', err);
+        setValidationError('Error al guardar la sección. Intente de nuevo.');
+        setIsSaving(false);
+        return;
+      }
+
       setSavedSections(prev => ({ ...prev, [sectionName]: true }));
       if (nextTabIndex !== undefined) {
         setTabValue(nextTabIndex);
@@ -670,11 +733,28 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating }) => {
         return { ...a, acreedor: acreedorData };
       }),
       projectionData,
+      tipoSolicitud: TIPO_SOLICITUD_INSOLVENCIA,
     };
-    
-    setIsUploading(false);
-    console.log("[InsolvenciaForm] Final data being sent to parent onSubmit:", dataToSend);
-    onSubmit(dataToSend);
+
+    try {
+      let result;
+      const progreso = { deudor: true, sede: true, causas: true, acreencias: true, bienes: true, financiera: true, propuesta: true, anexos: true, firma: true };
+
+      if (solicitudId) {
+        result = await updateSolicitud(solicitudId, { ...dataToSend, status: 'completed', progreso });
+        console.log(`[InsolvenciaForm] Draft ${solicitudId} finalizado como completado.`);
+      } else {
+        result = await createSolicitud({ ...dataToSend, tipoSolicitud: TIPO_SOLICITUD_INSOLVENCIA, status: 'completed', progreso });
+        console.log('[InsolvenciaForm] Solicitud creada como completada.');
+      }
+
+      setIsUploading(false);
+      onSubmit(result);
+    } catch (err) {
+      setIsUploading(false);
+      console.error('[InsolvenciaForm] Error al guardar solicitud:', err);
+      setValidationError('Error al guardar la solicitud. Intente de nuevo.');
+    }
   }
 
   // Watchers
@@ -4477,7 +4557,7 @@ const cumpleRequisitos = validacionInsolvencia.dosOMasObligaciones &&
                     onClick={() => setConfirmModalOpen(true)}
                     variant="contained"
                     size="large"
-                    disabled={isUploading || isUpdating}
+                    disabled={isUploading}
                     startIcon={<SendIcon />}
                     sx={{
                       py: 2,
@@ -4495,7 +4575,7 @@ const cumpleRequisitos = validacionInsolvencia.dosOMasObligaciones &&
                       },
                     }}
                   >
-                    {isUploading ? 'Subiendo Archivos...' : (isUpdating ? 'Actualizando...' : (initialData ? 'Actualizar Solicitud' : 'Generar Solicitud'))}
+                    {isUploading ? 'Subiendo Archivos...' : (initialData ? 'Actualizar Solicitud' : 'Generar Solicitud')}
                   </Button>
                 </Stack>
               </Box>
@@ -4546,9 +4626,9 @@ const cumpleRequisitos = validacionInsolvencia.dosOMasObligaciones &&
                     autoFocus 
                     variant="contained" 
                     sx={{ borderRadius: '12px' }}
-                    disabled={isUploading || isUpdating}
+                    disabled={isUploading}
                   >
-                    {isUploading ? 'Subiendo...' : (isUpdating ? 'Actualizando...' : (initialData ? 'Confirmar Actualización' : 'Confirmar'))}
+                    {isUploading ? 'Subiendo...' : (initialData ? 'Confirmar Actualización' : 'Confirmar')}
                   </Button>
                 </DialogActions>
               </Dialog>

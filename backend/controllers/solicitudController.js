@@ -223,4 +223,89 @@ const getSolicitudDocumento = async (req, res) => {
   }
 };
 
-module.exports = { createSolicitud, getSolicitudDocumento, getMisSolicitudes, getSolicitudById, updateSolicitud };
+const createDraftSolicitud = async (req, res) => {
+  try {
+    const dataToSave = { ...req.body, user: req.user._id, status: 'draft' };
+    if (dataToSave.deudor) {
+      dataToSave.deudor.nombreCompleto = [
+        dataToSave.deudor.primerNombre,
+        dataToSave.deudor.segundoNombre,
+        dataToSave.deudor.primerApellido,
+        dataToSave.deudor.segundoApellido,
+      ].filter(Boolean).join(' ');
+    }
+    const solicitud = new Solicitud(dataToSave);
+    const created = await solicitud.save();
+    res.status(201).json(created);
+  } catch (error) {
+    console.error('Error al crear borrador:', error);
+    res.status(400).json({
+      message: 'Error al crear borrador',
+      error: error.errors ? Object.values(error.errors).map(e => e.message) : error.message,
+    });
+  }
+};
+
+const saveSolicitudSection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { section, progreso } = req.body;
+
+    const solicitud = await Solicitud.findById(id);
+    if (!solicitud) {
+      return res.status(404).json({ message: 'Solicitud no encontrada' });
+    }
+    if (solicitud.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+
+    // Set the section data directly on the document
+    if (section) {
+      solicitud.set(section);
+    }
+
+    // Update progreso
+    if (progreso) {
+      solicitud.set('progreso', progreso);
+    }
+
+    solicitud.status = 'draft';
+
+    if (solicitud.deudor) {
+      solicitud.deudor.nombreCompleto = [
+        solicitud.deudor.primerNombre,
+        solicitud.deudor.segundoNombre,
+        solicitud.deudor.primerApellido,
+        solicitud.deudor.segundoApellido,
+      ].filter(Boolean).join(' ');
+    }
+
+    const updated = await solicitud.save();
+    res.json(updated);
+  } catch (error) {
+    console.error('Error al guardar sección:', error);
+    res.status(400).json({
+      message: 'Error al guardar sección',
+      error: error.errors ? Object.values(error.errors).map(e => e.message) : error.message,
+    });
+  }
+};
+
+const deleteSolicitud = async (req, res) => {
+  try {
+    const solicitud = await Solicitud.findById(req.params.id);
+    if (!solicitud) {
+      return res.status(404).json({ message: 'Solicitud no encontrada' });
+    }
+    if (solicitud.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+    await Solicitud.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Solicitud eliminada correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar solicitud:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+};
+
+module.exports = { createSolicitud, getSolicitudDocumento, getMisSolicitudes, getSolicitudById, updateSolicitud, createDraftSolicitud, saveSolicitudSection, deleteSolicitud };

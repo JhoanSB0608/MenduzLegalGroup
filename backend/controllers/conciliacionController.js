@@ -154,4 +154,70 @@ const updateConciliacion = async (req, res) => {
   }
 };
 
-module.exports = { createConciliacion, getConciliacionDocumento, getConciliacionById, updateConciliacion };
+const createDraftConciliacion = async (req, res) => {
+  try {
+    const dataToSave = { ...req.body, user: req.user._id, status: 'draft' };
+    const conciliacion = new Conciliacion(dataToSave);
+    const created = await conciliacion.save();
+    res.status(201).json(created);
+  } catch (error) {
+    console.error('Error al crear borrador de conciliación:', error);
+    res.status(400).json({
+      message: 'Error al crear borrador',
+      error: error.errors ? Object.values(error.errors).map(e => e.message) : error.message,
+    });
+  }
+};
+
+const saveConciliacionSection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { section, progreso } = req.body;
+
+    const conciliacion = await Conciliacion.findById(id);
+    if (!conciliacion) {
+      return res.status(404).json({ message: 'Conciliación no encontrada' });
+    }
+    if (conciliacion.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+
+    if (section) {
+      conciliacion.set(section);
+    }
+
+    if (progreso) {
+      conciliacion.set('progreso', progreso);
+    }
+
+    conciliacion.status = 'draft';
+
+    const updated = await conciliacion.save();
+    res.json(updated);
+  } catch (error) {
+    console.error('Error al guardar sección de conciliación:', error);
+    res.status(400).json({
+      message: 'Error al guardar sección',
+      error: error.errors ? Object.values(error.errors).map(e => e.message) : error.message,
+    });
+  }
+};
+
+const deleteConciliacion = async (req, res) => {
+  try {
+    const conciliacion = await Conciliacion.findById(req.params.id);
+    if (!conciliacion) {
+      return res.status(404).json({ message: 'Conciliación no encontrada' });
+    }
+    if (conciliacion.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+    await Conciliacion.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Conciliación eliminada correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar conciliación:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+};
+
+module.exports = { createConciliacion, getConciliacionDocumento, getConciliacionById, updateConciliacion, createDraftConciliacion, saveConciliacionSection, deleteConciliacion };

@@ -8,7 +8,10 @@ const {
   getSolicitudDocumento, 
   getMisSolicitudes,
   getSolicitudById,
-  updateSolicitud
+  updateSolicitud,
+  createDraftSolicitud,
+  saveSolicitudSection,
+  deleteSolicitud
 } = require('../controllers/solicitudController.js');
 const { protect } = require('../middleware/authMiddleware.js');
 
@@ -36,9 +39,16 @@ router.route('/')
   .post(protect, uploadFields, createSolicitud)
   .get(protect, getMisSolicitudes);
 
+router.route('/draft')
+  .post(protect, createDraftSolicitud);
+
+router.route('/:id/section')
+  .patch(protect, saveSolicitudSection);
+
 router.route('/:id')
   .get(protect, getSolicitudById)
-  .put(protect, uploadFields, updateSolicitud);
+  .put(protect, uploadFields, updateSolicitud)
+  .delete(protect, deleteSolicitud);
 
 router.route('/:id/documento').get(protect, getSolicitudDocumento);
 

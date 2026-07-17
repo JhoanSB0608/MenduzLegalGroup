@@ -1664,6 +1664,25 @@ const AdminPage = () => {
       }
     },
     {
+      accessorKey: 'status',
+      header: 'Estado',
+      cell: ({ getValue }) => {
+        const status = getValue();
+        // Old documents without status field are treated as completed
+        const isDraft = status === 'draft';
+        const isCompleted = status === 'completed' || !status;
+        return (
+          <Chip
+            label={isDraft ? 'Borrador' : 'Completado'}
+            size="small"
+            color={isDraft ? 'warning' : 'success'}
+            variant={isDraft ? 'outlined' : 'filled'}
+            sx={{ fontWeight: 600 }}
+          />
+        );
+      }
+    },
+    {
         id: 'deudor',
         header: 'Deudor/a',
         cell: ({ row }) => {
@@ -1744,24 +1763,55 @@ const AdminPage = () => {
       header: 'Acciones',
       cell: ({ row }) => {
         const { original } = row;
+        const isDraft = original.status === 'draft';
         return (
             <Stack direction="row" spacing={1}>
                 {original.tipoSolicitud.startsWith('Solicitud de Insolvencia') && (
-                    <Tooltip title="Editar Solicitud de Insolvencia">
-                        <IconButton onClick={() => navigate(`/admin/editar-solicitud/${original._id}`)}><EditIcon /></IconButton>
+                  isDraft ? (
+                    <Tooltip title="Continuar borrador de Insolvencia">
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => navigate(`/admin/editar-solicitud/${original._id}`)}
+                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.75rem' }}
+                      >
+                        Continuar
+                      </Button>
                     </Tooltip>
+                  ) : (
+                    <Tooltip title="Editar Solicitud de Insolvencia">
+                      <IconButton onClick={() => navigate(`/admin/editar-solicitud/${original._id}`)}><EditIcon /></IconButton>
+                    </Tooltip>
+                  )
                 )}
                 {original.tipoSolicitud.startsWith('Solicitud de Conciliación') && (
-                    <Tooltip title="Editar Solicitud de Conciliación">
-                        <IconButton onClick={() => navigate(`/admin/editar-conciliacion/${original._id}`)}><EditIcon /></IconButton>
+                  isDraft ? (
+                    <Tooltip title="Continuar borrador de Conciliación">
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => navigate(`/admin/editar-conciliacion/${original._id}`)}
+                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.75rem' }}
+                      >
+                        Continuar
+                      </Button>
                     </Tooltip>
+                  ) : (
+                    <Tooltip title="Editar Solicitud de Conciliación">
+                      <IconButton onClick={() => navigate(`/admin/editar-conciliacion/${original._id}`)}><EditIcon /></IconButton>
+                    </Tooltip>
+                  )
                 )}
-                <Tooltip title="Descargar PDF">
-                    <IconButton onClick={() => handleDownload(original._id, original.tipoSolicitud, 'pdf')}><PictureAsPdf /></IconButton>
-                </Tooltip>
-                <Tooltip title="Descargar DOCX">
-                    <IconButton onClick={() => handleDownload(original._id, original.tipoSolicitud, 'docx')}><DescriptionIcon /></IconButton>
-                </Tooltip>
+                {!isDraft && (
+                  <>
+                    <Tooltip title="Descargar PDF">
+                      <IconButton onClick={() => handleDownload(original._id, original.tipoSolicitud, 'pdf')}><PictureAsPdf /></IconButton>
+                    </Tooltip>
+                    <Tooltip title="Descargar DOCX">
+                      <IconButton onClick={() => handleDownload(original._id, original.tipoSolicitud, 'docx')}><DescriptionIcon /></IconButton>
+                    </Tooltip>
+                  </>
+                )}
             </Stack>
         )
       }

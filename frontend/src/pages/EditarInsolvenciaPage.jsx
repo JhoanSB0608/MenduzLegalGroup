@@ -1,16 +1,16 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSolicitudById, updateSolicitud } from '../services/solicitudService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getSolicitudById } from '../services/solicitudService';
 import InsolvenciaForm from '../components/forms/InsolvenciaForm';
 import { Container, CircularProgress, Alert, Typography, Box, useTheme, alpha } from '@mui/material';
-import { ErrorOutline as ErrorIcon } from '@mui/icons-material'; // Added missing import
+import { ErrorOutline as ErrorIcon } from '@mui/icons-material';
 
 const EditarInsolvenciaPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const theme = useTheme(); // Import added
+  const theme = useTheme();
 
   const { data: solicitud, isLoading, isError, error } = useQuery({
     queryKey: ['solicitud', id],
@@ -22,25 +22,15 @@ const EditarInsolvenciaPage = () => {
     enabled: !!id,
   });
 
-  const { mutate: update, isLoading: isUpdating } = useMutation({
-    mutationFn: (solicitudData) => {
-      console.log('[EditarInsolvenciaPage] Updating solicitud with data:', solicitudData);
-      return updateSolicitud(id, solicitudData);
-    },
-    onSuccess: () => {
-      console.log('[EditarInsolvenciaPage] Solicitud updated successfully.');
+  const handleSubmit = (result) => {
+    if (result && result._id) {
+      console.log('[EditarInsolvenciaPage] Solicitud actualizada correctamente.');
       queryClient.invalidateQueries(['solicitudes']);
       queryClient.invalidateQueries(['solicitud', id]);
       navigate('/admin');
-    },
-    onError: (error) => {
-      console.error('[EditarInsolvenciaPage] Error actualizando la solicitud:', error);
-    },
-  });
-
-  const handleSubmit = (data) => {
-    console.log("[EditarInsolvenciaPage] Data received from form:", data);
-    update(data);
+    } else {
+      console.error('[EditarInsolvenciaPage] Error actualizando la solicitud');
+    }
   };
 
   if (isLoading) {
@@ -97,7 +87,6 @@ const EditarInsolvenciaPage = () => {
         <InsolvenciaForm
           onSubmit={handleSubmit}
           initialData={solicitud}
-          isUpdating={isUpdating}
         />
       )}
     </Container>
