@@ -117,7 +117,6 @@ const getConciliacionById = async (req, res) => {
 };
 
 const updateConciliacion = async (req, res) => {
-  console.log(`[conciliacionController] updateConciliacion ${req.params.id} - received body:`, JSON.stringify(req.body, null, 2));
   try {
     const conciliacion = await Conciliacion.findById(req.params.id);
 
@@ -131,7 +130,11 @@ const updateConciliacion = async (req, res) => {
     }
     
     // The incoming request body is now the source of truth.
-    const dataToUpdate = req.body;
+    const dataToUpdate = { ...req.body };
+    delete dataToUpdate._id;
+    delete dataToUpdate.__v;
+    delete dataToUpdate.createdAt;
+    delete dataToUpdate.updatedAt;
 
     // Directly assign the data from the request body to the Mongoose document.
     conciliacion.set(dataToUpdate);
@@ -140,7 +143,6 @@ const updateConciliacion = async (req, res) => {
     conciliacion.anexos = dataToUpdate.anexos || [];
     conciliacion.firma = dataToUpdate.firma;
     
-    console.log("[conciliacionController] updateConciliacion - object to be saved:", JSON.stringify(conciliacion.toObject(), null, 2));
     const updatedConciliacion = await conciliacion.save();
     res.json(updatedConciliacion);
 
@@ -183,7 +185,12 @@ const saveConciliacionSection = async (req, res) => {
     }
 
     if (section) {
-      conciliacion.set(section);
+      const sectionData = { ...section };
+      delete sectionData._id;
+      delete sectionData.__v;
+      delete sectionData.createdAt;
+      delete sectionData.updatedAt;
+      conciliacion.set(sectionData);
     }
 
     if (progreso) {
