@@ -38,7 +38,12 @@ const updateSolicitud = async (req, res) => {
     }
     
     // The incoming request body is now the source of truth, containing all data including GCS urls for anexos.
-    const dataToUpdate = req.body;
+    // Sanitize: remove internal Mongoose fields to avoid VersionError
+    const dataToUpdate = { ...req.body };
+    delete dataToUpdate._id;
+    delete dataToUpdate.__v;
+    delete dataToUpdate.createdAt;
+    delete dataToUpdate.updatedAt;
 
     // Directly assign the data from the request body to the Mongoose document.
     // Mongoose is smart enough to handle the nested schemas.
@@ -259,9 +264,14 @@ const saveSolicitudSection = async (req, res) => {
       return res.status(401).json({ message: 'No autorizado' });
     }
 
-    // Set the section data directly on the document
+    // Set the section data directly on the document (sanitize internal Mongoose fields)
     if (section) {
-      solicitud.set(section);
+      const sectionData = { ...section };
+      delete sectionData._id;
+      delete sectionData.__v;
+      delete sectionData.createdAt;
+      delete sectionData.updatedAt;
+      solicitud.set(sectionData);
     }
 
     // Update progreso
