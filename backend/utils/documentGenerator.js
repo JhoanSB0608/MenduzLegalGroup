@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const PdfPrinter = require('pdfmake');
 const { Unidades } = require('./numeroALetras');
+const { fetchImageAsBase64 } = require('./imageHelper');
 
 // -------------------- Fuentes --------------------
 const fontsDir = path.resolve(__dirname, '..', 'fonts');
@@ -1343,9 +1344,22 @@ function buildDocDefinition(solicitud = {}) {
 
 // -------------------- Generador Principal --------------------
 async function generateSolicitudPdf(solicitud = {}) {
+  const plain = solicitud.toObject ? solicitud.toObject() : solicitud;
+  const solicitudResolved = { ...plain, firma: { ...plain.firma } };
+
+  if (solicitud.firma?.source === 'upload' && solicitud.firma?.url && !solicitud.firma?.data) {
+    try {
+      console.log('[PDF] Fetching signature image from URL:', solicitud.firma.url);
+      const dataUrl = await fetchImageAsBase64(solicitud.firma.url);
+      solicitudResolved.firma.data = dataUrl;
+    } catch (err) {
+      console.error('[PDF] Error fetching signature image:', err.message);
+    }
+  }
+
   return new Promise((resolve, reject) => {
     try {
-      const docDefinition = buildDocDefinition(solicitud);
+      const docDefinition = buildDocDefinition(solicitudResolved);
       const printer = new PdfPrinter(FONTS);
       const pdfDoc = printer.createPdfKitDocument(docDefinition);
       const chunks = [];

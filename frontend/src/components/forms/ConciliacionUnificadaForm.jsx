@@ -340,7 +340,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
   });
   const [solicitudId, setSolicitudId] = useState(initialData?._id || null);
 
-  const sigCanvas = useRef({});
+  const sigCanvas = useRef(null);
   const signatureContainerRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 500, height: 200 });
   const watchedFirmaSource = watch('firma.source');
@@ -593,15 +593,14 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
     // Process Signature File
     if (signatureSource === 'upload' && dataToSend.firma?.file instanceof File) {
         try {
-            const gcsUrl = await uploadFile(dataToSend.firma.file);
+            const { fileUrl, uniqueFilename } = await uploadFile(dataToSend.firma.file);
             dataToSend.firma = {
                 source: 'upload',
-                name: dataToSend.firma.file.name,
-                url: gcsUrl,
+                name: uniqueFilename,
+                url: fileUrl,
             };
         } catch (error) {
             console.error("Error uploading signature:", error);
-            // Handle error
             dataToSend.firma = { ...dataToSend.firma, error: "Upload failed" };
         }
     } else if (signatureSource === 'draw' && sigCanvas.current && !sigCanvas.current.isEmpty()) {
@@ -1069,7 +1068,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
                               height: canvasSize.height,
                               style: { background: '#f8f8f8', borderRadius: '12px' }
                           }}
-                          onEnd={() => setValue('firma.data', sigCanvas.current.getTrimmedCanvas().toDataURL('image/png'))}
+                          onEnd={() => sigCanvas.current && setValue('firma.data', sigCanvas.current.getTrimmedCanvas().toDataURL('image/png'))}
                       />
                   </Box>
                   <Button

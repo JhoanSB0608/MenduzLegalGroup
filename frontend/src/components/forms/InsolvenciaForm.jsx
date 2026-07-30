@@ -707,7 +707,7 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating: _isUpd
             const { fileUrl, uniqueFilename } = await uploadFile(correctedData.firma.file);
             correctedData.firma = {
                 source: 'upload',
-                name: uniqueFilename, // Store uniqueFilename as name
+                name: uniqueFilename,
                 url: fileUrl,
             };
         } catch (error) {

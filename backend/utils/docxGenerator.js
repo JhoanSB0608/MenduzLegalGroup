@@ -23,6 +23,7 @@ const moment = require('moment');
 const fs = require('fs');
 const path = require('path');
 const { Unidades, numeroALetras } = require('./numeroALetras');
+const { fetchImageAsBase64 } = require('./imageHelper');
 
 // --- Helper Functions ---
 
@@ -666,6 +667,7 @@ const tableRows = detalleData.map(
 }
 
 const generateConciliacionDocx = async (solicitud = {}) => {
+
   const {
     infoGeneral = {},
     convocantes = [],
@@ -830,6 +832,16 @@ const generateConciliacionDocx = async (solicitud = {}) => {
   children.push(createConciliacionParagraph([
     createConciliacionTextRun(`Cédula de Ciudadanía No. ${safe(convocante.numeroIdentificacion)} de ${safe(convocante.ciudadExpedicion)}.`)
   ]));
+
+  if (solicitud.firma?.source === 'upload' && solicitud.firma?.url && !solicitud.firma?.data) {
+    try {
+      console.log('[DOCX] Fetching signature image from URL:', solicitud.firma.url);
+      const dataUrl = await fetchImageAsBase64(solicitud.firma.url);
+      solicitud.firma.data = dataUrl;
+    } catch (err) {
+      console.error('[DOCX] Error fetching signature image:', err.message);
+    }
+  }
 
   const doc = new Document({
     creator: 'MenduzLegalGroup',
