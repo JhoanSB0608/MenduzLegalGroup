@@ -346,6 +346,8 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
   const watchedFirmaSource = watch('firma.source');
   const [signatureSource, setSignatureSource] = useState('draw');
   const [signatureImage, setSignatureImage] = useState(null);
+  const [pendingDrawData, setPendingDrawData] = useState(null);
+  const [canvasMounted, setCanvasMounted] = useState(false);
 
   // State for Description Modal
   const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
@@ -380,15 +382,10 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
         const { source, data, url } = initialData.firma;
         setSignatureSource(source || 'draw');
         if (source === 'draw' && data) {
-          setTimeout(() => {
-            if (sigCanvas.current && sigCanvas.current.fromDataURL) {
-              sigCanvas.current.fromDataURL(data);
-            }
-          }, 200);
+          setPendingDrawData(data);
         } else if (source === 'upload' && url) {
           const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
-          setSignatureImage(`${backendUrl}${url}`);
-          // Set the URL in form data as if it was uploaded
+          setSignatureImage(`${backendUrl}/api/gcs/image?url=${encodeURIComponent(url)}`);
           setValue('firma.url', url);
         }
       }
@@ -433,6 +430,13 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
         setSignatureSource(watchedFirmaSource);
         }
     }, [watchedFirmaSource]);
+
+    useEffect(() => {
+      if (canvasMounted && pendingDrawData && sigCanvas.current?.fromDataURL) {
+        sigCanvas.current.fromDataURL(pendingDrawData);
+        setPendingDrawData(null);
+      }
+    }, [canvasMounted, pendingDrawData]);
 
     const handleSignatureFileUpload = (e) => {
         const file = e.target.files[0];
@@ -1061,7 +1065,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
                       }}
                   >
                       <SignatureCanvas
-                          ref={sigCanvas}
+                          ref={(el) => { sigCanvas.current = el; setCanvasMounted(!!el); }}
                           penColor='black'
                           canvasProps={{
                               width: canvasSize.width,

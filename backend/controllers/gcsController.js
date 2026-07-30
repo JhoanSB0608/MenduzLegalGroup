@@ -107,4 +107,32 @@ const getDownloadSignedUrl = async (req, res) => {
   }
 };
 
-module.exports = { getUploadSignedUrl, getDownloadSignedUrl };
+const serveImage = async (req, res) => {
+  const { url } = req.query;
+  if (!url) {
+    return res.status(400).json({ message: 'URL param required' });
+  }
+
+  try {
+    const prefix = 'https://storage.googleapis.com/';
+    if (!url.startsWith(prefix)) {
+      return res.status(400).json({ message: 'Invalid GCS URL' });
+    }
+    const afterPrefix = url.slice(prefix.length);
+    const idx = afterPrefix.indexOf('/');
+    const bucket = idx === -1 ? afterPrefix : afterPrefix.slice(0, idx);
+    const filename = idx === -1 ? '' : decodeURIComponent(afterPrefix.slice(idx + 1));
+
+    const [buffer] = await storage.bucket(bucket).file(filename).download();
+    const contentType = req.query.contentType || 'image/png';
+
+    res.set('Content-Type', contentType);
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.send(buffer);
+  } catch (error) {
+    console.error('[GCS] Error serving image:', error.message);
+    res.status(500).json({ message: 'Error serving image', detail: error.message });
+  }
+};
+
+module.exports = { getUploadSignedUrl, getDownloadSignedUrl, serveImage };

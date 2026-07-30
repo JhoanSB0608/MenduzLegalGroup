@@ -120,7 +120,7 @@ const AuthProvider = ({ children }) => {
 
   const { reset: resetIdleTimer } = useIdleTimeout({
     onIdle: handleIdle,
-    idleTime: 4.5 * 60 * 1000, // 4.5 minutes
+    idleTime: 15 * 60 * 1000,
     enabled: !!user && !loading,
   });
 

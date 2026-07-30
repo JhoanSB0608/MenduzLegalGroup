@@ -361,12 +361,14 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating: _isUpd
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingAnexos, setUploadingAnexos] = useState({});
   const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
-  const sigCanvas = React.useRef({});
+  const sigCanvas = React.useRef(null);
 
   // Watcher for firma.source to keep state in sync
   const watchedFirmaSource = watch('firma.source');
   const [signatureSource, setSignatureSource] = useState('draw');
   const [signatureImage, setSignatureImage] = useState(null);
+  const [pendingDrawData, setPendingDrawData] = useState(null);
+  const [canvasMounted, setCanvasMounted] = useState(false);
   
   // State for Description Modal
   const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
@@ -379,6 +381,13 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating: _isUpd
       setSignatureSource(watchedFirmaSource);
     }
   }, [watchedFirmaSource]);
+
+  useEffect(() => {
+    if (canvasMounted && pendingDrawData && sigCanvas.current?.fromDataURL) {
+      sigCanvas.current.fromDataURL(pendingDrawData);
+      setPendingDrawData(null);
+    }
+  }, [canvasMounted, pendingDrawData]);
 
   const handleSignatureFileUpload = (e) => {
     const file = e.target.files[0];
@@ -471,16 +480,10 @@ const InsolvenciaForm = ({ onSubmit, resetToken, initialData, isUpdating: _isUpd
         setSignatureSource(source || 'draw');
         
         if (source === 'draw' && data) {
-          // Use a timeout to ensure canvas is ready
-          setTimeout(() => {
-            if (sigCanvas.current && sigCanvas.current.fromDataURL) {
-              sigCanvas.current.fromDataURL(data);
-            }
-          }, 200);
+          setPendingDrawData(data);
         } else if (source === 'upload' && url) {
-          // Assuming the URL is a relative path to the backend
           const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
-          setSignatureImage(`${backendUrl}${url}`);
+          setSignatureImage(`${backendUrl}/api/gcs/image?url=${encodeURIComponent(url)}`);
         }
       }
 
@@ -4471,7 +4474,7 @@ const cumpleRequisitos = validacionInsolvencia.dosOMasObligaciones &&
                 {signatureSource === 'draw' && (
                   <Box sx={{ border: '1px dashed grey', borderRadius: '12px', p: 1, background: 'white' }}>
                     <SignatureCanvas
-                      ref={sigCanvas}
+                      ref={(el) => { sigCanvas.current = el; setCanvasMounted(!!el); }}
                       penColor='black'
                       canvasProps={{
                         width: 500,
@@ -4479,7 +4482,7 @@ const cumpleRequisitos = validacionInsolvencia.dosOMasObligaciones &&
                         style: { background: '#f8f8f8', borderRadius: '12px' }
                       }}
                     />
-                    <Button onClick={() => sigCanvas.current.clear()}>Limpiar</Button>
+                    <Button onClick={() => sigCanvas.current && sigCanvas.current.clear()}>Limpiar</Button>
                   </Box>
                 )}
 
