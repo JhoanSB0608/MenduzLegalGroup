@@ -887,6 +887,15 @@ async function generateAdmisionDocx(solicitud = {}) {
   const admissionDate = solicitud.fechaAdmision ? new Date(solicitud.fechaAdmision) : new Date();
   const audienceDate = solicitud.fechaAudiencia ? new Date(solicitud.fechaAudiencia) : new Date(admissionDate.getTime() + 15 * 24 * 60 * 60 * 1000);
 
+  const esFemenino = (deudor.genero || '').toLowerCase() === 'femenino';
+  const senoraOsenor = esFemenino ? 'señora' : 'señor';
+  const SeñoraOSeñor = esFemenino ? 'Señora' : 'Señor';
+  const identificadxA = esFemenino ? 'identificada' : 'identificado';
+  const insolventx = esFemenino ? 'la insolvente' : 'el insolvente';
+  const deudorax = esFemenino ? 'deudora' : 'deudor';
+  const laDeudoraAlDeudor = esFemenino ? 'a la deudora' : 'al deudor';
+  const solteraSoltero = esFemenino ? 'SOLTERA' : 'SOLTERO';
+
   const children = [];
 
   // ========== ENCABEZADO AUTO (Centrado y Negrita) ========== 
@@ -914,9 +923,9 @@ async function generateAdmisionDocx(solicitud = {}) {
   children.push(createParagraph([createTextRunAdmision("I. CONSIDERACIONES:", { bold: true })], { alignment: AlignmentType.CENTER, spacing: { after: 240 } }));
   
   children.push(createParagraph([
-    createTextRunAdmision(`La señora `),
+    createTextRunAdmision(`La ${senoraOsenor} `),
     createTextRunAdmision(nombreCompleto.toUpperCase(), { bold: true }),
-    createTextRunAdmision(`, mayor de edad, con domicilio en esta ciudad, identificado con cédula de ciudadanía número `),
+    createTextRunAdmision(`, mayor de edad, con domicilio en esta ciudad, ${identificadxA} con cédula de ciudadanía número `),
     createTextRunAdmision(safe(deudor.cedula), { bold: true }),
     createTextRunAdmision(`, en su calidad de deudor, A los Diecinueve (19) días del mes de noviembre del año dos mil veinticinco (2025), presentó solicitud de negociación de sus deudas con sus acreedores, con el objeto de normalizar sus relaciones crediticias (Artículo 531 C.G.P, modificado por el Articulo 3 de la Ley 2445 del 2025).`),
   ], { spacing: { after: 240 } }));
@@ -946,7 +955,7 @@ async function generateAdmisionDocx(solicitud = {}) {
   // ========== RAZONES POR LAS CUALES ESTA EN INSOLVENCIA ========== 
   children.push(createParagraph([createTextRunAdmision("RAZONES POR LAS CUALES ESTA EN INSOLVENCIA:", { bold: true })], { spacing: { before: 120, after: 120 } }));
   children.push(createParagraph([
-    createTextRunAdmision("En cumplimiento de lo consagrado en el Art. 539 numeral 1 C.G.P, modificado por el articulo Decimo (10) de la ley 2445 de 2025, menciona la insolvente textualmente en su solicitud lo siguiente:"),
+    createTextRunAdmision(`En cumplimiento de lo consagrado en el Art. 539 numeral 1 C.G.P, modificado por el articulo Decimo (10) de la ley 2445 de 2025, menciona la ${insolventx} textualmente en su solicitud lo siguiente:`),
   ], { spacing: { after: 120 } }));
   
   const causasTexto = solicitud.causasInsolvencia || "ANTE LA CRISIS ECONOMICA Y LA ESCASEZ DE ALTERNATIVAS, BUSQUE NUEVAS FUENTES DE LIQUIDEZ ECONOMICA EN BANCOS Y TARJETAS DE CREDITO...";
@@ -1184,7 +1193,7 @@ async function generateAdmisionDocx(solicitud = {}) {
   // ========== 10. SOCIEDAD CONYUGAL ========== 
   children.push(createParagraph([createTextRunAdmision("10.INFORMACIÓN SOBRE SOCIEDAD CONYUGAL Y PATRIMONIAL:", { bold: true })], { spacing: { after: 120 } }));
   children.push(createParagraph([createTextRunAdmision("En cumplimiento de lo consagrado en el art. 539 numeral 8 C.G.P, modificado por el Articulo 10 de la Ley 2445 del 2025, el deudor manifiesta:")], { spacing: { after: 120 } }));
-  const conyugalTexto = solicitud.sociedadConyugal?.activa ? `ESTADO CIVIL CASADO(A) O EN UNIÓN LIBRE CON LA SOCIEDAD VIGENTE CON EL SEÑOR(A) ${safe(solicitud.sociedadConyugal.nombreConyuge).toUpperCase()}.` : "MANIFIESTO BAJO LA GRAVEDAD DE JURAMENTO QUE MI ESTADO CIVIL ES EL DE SOLTERA SIN UNIÓN MARITAL DE HECHO VIGENTE, PUES NO HE CONTRAÍDO MATRIMONIO CON PERSONA ALGUNA, NI HE DECLARADO LA UNIÓN MARITAL DE HECHO.";
+  const conyugalTexto = solicitud.sociedadConyugal?.activa ? `ESTADO CIVIL CASADO(A) O EN UNIÓN LIBRE CON LA SOCIEDAD VIGENTE CON EL SEÑOR(A) ${safe(solicitud.sociedadConyugal.nombreConyuge).toUpperCase()}.` : `MANIFIESTO BAJO LA GRAVEDAD DE JURAMENTO QUE MI ESTADO CIVIL ES EL DE ${solteraSoltero} SIN UNIÓN MARITAL DE HECHO VIGENTE, PUES NO HE CONTRAÍDO MATRIMONIO CON PERSONA ALGUNA, NI HE DECLARADO LA UNIÓN MARITAL DE HECHO.`;
   children.push(createParagraph([createTextRunAdmision(conyugalTexto)], { spacing: { after: 240 } }));
 
   // ========== PROPUESTA DE PAGO ========== 
@@ -1199,9 +1208,9 @@ async function generateAdmisionDocx(solicitud = {}) {
   children.push(createParagraph([createTextRunAdmision("II. RESUELVE", { bold: true })], { alignment: AlignmentType.CENTER, spacing: { after: 240 } }));
 
   const resolveItems = [
-    { verb: "ACEPTAR", text: ` e iniciar el proceso de negociación de deudas solicitado por La Señora ${nombreCompleto.toUpperCase()}, identificada con cedula de ciudadanía Numero C.C. ${safe(deudor.cedula)}, expedida en ${safe(deudor.ciudadExpedicion)}.` },
+    { verb: "ACEPTAR", text: ` e iniciar el proceso de negociación de deudas solicitado por La ${SeñoraOSeñor} ${nombreCompleto.toUpperCase()}, ${identificadxA} con cedula de ciudadanía Numero C.C. ${safe(deudor.cedula)}, expedida en ${safe(deudor.ciudadExpedicion)}.` },
     { verb: "FIJAR", text: ` como fecha para la audiencia de negociación de pasivos el DIEZ (10) de DICIEMBRE del año (2025), a las 05:00 PM, que se llevará a cabo de manera virtual a través del link que se comparta en cada una de las notificaciones judiciales, junto con sus anexos correspondientes.` },
-    { verb: "ORDENAR", text: ` a la deudora, señora ${nombreCompleto.toUpperCase()}, que dentro de los cinco (5) días siguientes a la aceptación del trámite de negociación de deudas, presente una relación actualizada de cada una de sus obligaciones, bienes y procesos judiciales, incluyendo todas las acreencias causadas al día inmediatamente anterior a la aceptación, conforme a la prelación de créditos tal cual se establece en el Código Civil, normas concordantes y Jurisprudencia Constitucional.` },
+    { verb: "ORDENAR", text: ` ${laDeudoraAlDeudor}, ${senoraOsenor} ${nombreCompleto.toUpperCase()}, que dentro de los cinco (5) días siguientes a la aceptación del trámite de negociación de deudas, presente una relación actualizada de cada una de sus obligaciones, bienes y procesos judiciales, incluyendo todas las acreencias causadas al día inmediatamente anterior a la aceptación, conforme a la prelación de créditos tal cual se establece en el Código Civil, normas concordantes y Jurisprudencia Constitucional.` },
     { verb: "NOTIFICAR", text: ` al deudor y a los acreedores, según el reporte de direcciones que indica en la solicitud.` },
     { verb: "COMUNICAR", text: ` a la DIAN, Secretaría de Hacienda, Secretaría de Hacienda Departamental, a la Unidad de Gestión Pensional y Parafiscales y a Centrales de Riesgo.` },
     { verb: "ADVERTIR", text: ` a los acreedores, de conformidad a lo ordenado en el Artículo 545 del C.G.P, modificado por el Articulo 16 de la Ley 2445 del 2025; lo siguiente:` }
