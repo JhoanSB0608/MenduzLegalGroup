@@ -67,6 +67,8 @@ const acreenciaInsolvenciaSchema = new mongoose.Schema({
   pagoPorLibranza: { type: Boolean, default: false },
   creditoPostergado: { type: Boolean, default: false },
   creditoEnMora: { type: Boolean, default: false },
+  moraMas90Dias: { type: Boolean, default: false },
+  diasDeMora: { type: Number, default: 0 },
   valorTotalInteresMoratorio: { type: Number, default: 0 },
   tasaInteresMoratorio: { type: String },
   tipoInteresMoratorio: { type: String },
@@ -271,6 +273,7 @@ const solicitudSchema = new mongoose.Schema({
   propuestaPago: propuestaPagoSchema,
   projectionData: { type: mongoose.Schema.Types.Mixed },
   anexos: [anexoSchema],
+  anexosSeleccionados: { type: [String], default: [] },
   firma: firmaSchema,
 
   // --- CAMPOS PARA FIJACIÓN DE ALIMENTOS ---

@@ -250,15 +250,21 @@ function buildConciliacionDocDefinition(solicitud = {}) {
         margin: [0, 0, 0, 5]
     });
 
-    const anexosList = anexos && anexos.length > 0
-        ? anexos.map(anexo => `${anexo.descripcion} - ${anexo.name}`)
-        : [
-            `Copia de cédula de ciudadanía de ${nombreConvocante}`,
-            `Copia de cédula de ciudadanía de ${nombreConvocado}`,
-            `Registro civil de ${nombreConvocado}`,
-            'Certificado de Cuenta Bancaria',
-            'Poder otorgado'
-        ];
+    const anexosSeleccionados = (solicitud && Array.isArray(solicitud.anexosSeleccionados)) ? solicitud.anexosSeleccionados : [];
+    const uploadedItems = anexos && anexos.length > 0
+        ? anexos.map(anexo => `${anexo.descripcion ? `${anexo.descripcion} - ` : ''}${anexo.name}`)
+        : [];
+    const anexosList = anexosSeleccionados.length > 0
+        ? [...anexosSeleccionados, ...uploadedItems]
+        : (uploadedItems.length > 0
+            ? uploadedItems
+            : [
+                `Copia de cédula de ciudadanía de ${nombreConvocante}`,
+                `Copia de cédula de ciudadanía de ${nombreConvocado}`,
+                `Registro civil de ${nombreConvocado}`,
+                'Certificado de Cuenta Bancaria',
+                'Poder otorgado'
+            ]);
 
     c.push({
         ol: anexosList,

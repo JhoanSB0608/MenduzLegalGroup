@@ -299,6 +299,14 @@ const DescriptionModal = ({ open, onClose, onConfirm, defaultValue = '' }) => {
   );
 };
 
+const ANEXOS_OPCIONES_CONCILIACION = [
+  'Registro civil de nacimiento',
+  'Registro civil de Matrimonio o extrajuicio de convivencia',
+  'Certificación Bancaria',
+  'Cédula De Ciudadanía Convocante',
+  'Cédula De Ciudadanía Convocado',
+];
+
 const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdating }) => {
   const theme = useTheme();
   const { register, control, handleSubmit, watch, setValue, getValues, trigger, formState: { errors }, reset, setError } = useForm({
@@ -310,6 +318,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
       hechos: [],
       pretensiones: [],
       anexos: [],
+      anexosSeleccionados: [],
       firma: { source: 'draw', data: null, file: null },
     }
   });
@@ -319,6 +328,15 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
   const { fields: hechosFields, append: appendHecho, remove: removeHecho } = useFieldArray({ control, name: "hechos", rules: { minLength: { value: 1, message: "Debe agregar al menos un hecho" }} });
   const { fields: pretensionesFields, append: appendPretension, remove: removePretension } = useFieldArray({ control, name: "pretensiones", rules: { minLength: { value: 1, message: "Debe agregar al menos una pretensión" }} });
   const { fields: anexosFields, append: appendAnexo, remove: removeAnexo } = useFieldArray({ control, name: "anexos" });
+  const watchedAnexosSeleccionados = watch('anexosSeleccionados') || [];
+
+  const toggleAnexoSeleccionado = (option) => {
+    const current = watchedAnexosSeleccionados || [];
+    const next = current.includes(option)
+      ? current.filter(o => o !== option)
+      : [...current, option];
+    setValue('anexosSeleccionados', next);
+  };
 
   const TIPO_SOLICITUD_CONCILIACION = 'Solicitud de Conciliación Unificada';
 
@@ -373,6 +391,7 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
           url: a.url,   // Use 'url' directly from the initialData
           file: undefined, // Ensure no File object is present for existing anexos
         })),
+        anexosSeleccionados: initialData.anexosSeleccionados || [],
       };
       console.log('[ConciliacionUnificadaForm] Formatted data for reset:', formattedData);
       reset(formattedData);
@@ -978,6 +997,27 @@ const ConciliacionUnificadaForm = ({ onSubmit, initialData, isUpdating: _isUpdat
             <GlassCard sx={{ p: 3 }}>
                 <Stack spacing={2}>
                     <Typography variant="h6">Pruebas y Anexos</Typography>
+                    <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            Seleccione los documentos a adjuntar
+                        </Typography>
+                        <Grid container spacing={1} sx={{ mt: 0.5 }}>
+                            {ANEXOS_OPCIONES_CONCILIACION.map(option => (
+                                <Grid item xs={12} sm={6} key={option}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={(watchedAnexosSeleccionados || []).includes(option)}
+                                                onChange={() => toggleAnexoSeleccionado(option)}
+                                            />
+                                        }
+                                        label={option}
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
                     {anexosFields.map((field, index) => {
                         const isUploadingAnexo = uploadingAnexos[index];
                         return (

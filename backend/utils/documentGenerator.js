@@ -958,7 +958,7 @@ function buildDocDefinition(solicitud = {}) {
       { text: 'Sí', fontSize: 9, margin: [2, 1, 2, 1] }
     ]);
     conyugalRows.push([
-      { text: 'La sociedad conyugal o patrimonial está disuelta pero no liquidada', fontSize: 9, margin: [2, 1, 2, 1] },
+      { text: 'Vigente', fontSize: 9, margin: [2, 1, 2, 1] },
       { text: sociedadConyugal.disuelta ? 'Sí' : 'No', fontSize: 9, margin: [2, 1, 2, 1] }
     ]);
     conyugalRows.push([
@@ -1003,14 +1003,32 @@ function buildDocDefinition(solicitud = {}) {
     margin: [0, 0, 0, 4],
   });
 
-  if (!propuestaPago || propuestaPago.tipoNegociacion !== 'proyeccion') {
-    c.push({
-      text: 'No se presenta una propuesta de pago proyectada.',
-      fontSize: 9,
-      alignment: 'justify',
-      margin: [15, 0, 0, 6]
-    });
-  } else {
+  if (!propuestaPago || propuestaPago.tipoNegociacion === 'texto') {
+    const texto = (propuestaPago && propuestaPago.descripcion && String(propuestaPago.descripcion).trim())
+      ? String(propuestaPago.descripcion).trim()
+      : '';
+    if (texto) {
+      c.push({
+        text: 'La propuesta de pago presentada por el deudor es la siguiente:',
+        fontSize: 9,
+        alignment: 'justify',
+        margin: [15, 0, 0, 6]
+      });
+      c.push({
+        text: texto,
+        fontSize: 9,
+        alignment: 'justify',
+        margin: [15, 0, 0, 6]
+      });
+    } else {
+      c.push({
+        text: 'No se presenta una propuesta de pago proyectada.',
+        fontSize: 9,
+        alignment: 'justify',
+        margin: [15, 0, 0, 6]
+      });
+    }
+  } else if (propuestaPago.tipoNegociacion === 'proyeccion') {
     const classOrder2 = ['PRIMERA CLASE', 'SEGUNDA CLASE', 'TERCERA CLASE', 'CUARTA CLASE', 'QUINTA CLASE'];
     const groupedAcreencias2 = acreencias.reduce((acc, a) => {
       const aClass = getClassFromNaturaleza(a.naturalezaCredito);
@@ -1256,19 +1274,32 @@ function buildDocDefinition(solicitud = {}) {
     margin: [15, 0, 0, 2]
   });
 
+  const anexosSeleccionados = Array.isArray(solicitud?.anexosSeleccionados) ? solicitud.anexosSeleccionados : [];
   const anexos = Array.isArray(solicitud?.anexos) ? solicitud.anexos : [];
 
-  if (anexos.length > 0) {
-    anexos.forEach((anexo) => {
-      const nombre = anexo?.name || 'Documento sin nombre';
-      const descripcion = anexo?.descripcion ? ` - ${anexo.descripcion}` : '';
-      c.push({
-        text: ` ${descripcion} - ${nombre}`,
-        fontSize: 9,
-        margin: [20, 2, 0, 2]
-      });
+  let totalAnexos = 0;
+
+  anexosSeleccionados.forEach((doc) => {
+    c.push({
+      text: ` • ${doc}`,
+      fontSize: 9,
+      margin: [20, 2, 0, 2]
     });
-  } else {
+    totalAnexos++;
+  });
+
+  anexos.forEach((anexo) => {
+    const nombre = anexo?.name || 'Documento sin nombre';
+    const descripcion = anexo?.descripcion ? ` - ${anexo.descripcion}` : '';
+    c.push({
+      text: ` • ${descripcion} - ${nombre}`,
+      fontSize: 9,
+      margin: [20, 2, 0, 2]
+    });
+    totalAnexos++;
+  });
+
+  if (totalAnexos === 0) {
     c.push({
       text: 'No se anexaron documentos a la presente solicitud.',
       fontSize: 9,

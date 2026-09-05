@@ -81,6 +81,7 @@ const conciliacionSchema = new mongoose.Schema({
     hechos: [hechoSchema],
     pretensiones: [pretensionSchema],
     anexos: [anexoSchema],
+    anexosSeleccionados: { type: [String], default: [] },
     firma: firmaSchema,
 
     // --- CAMPOS PARA BORRADOR/GUARDADO PARCIAL ---

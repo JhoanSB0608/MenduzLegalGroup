@@ -489,7 +489,7 @@ const tableRows = detalleData.map(
   const conyugalData = [];
   if (sociedadConyugal.activa) {
       conyugalData.push(['Tengo o he tenido sociedad conyugal o patrimonial vigente', 'Sí']);
-      conyugalData.push(['La sociedad conyugal o patrimonial está disuelta pero no liquidada', sociedadConyugal.disuelta ? 'Sí' : 'No']);
+      conyugalData.push(['Vigente', sociedadConyugal.disuelta ? 'Sí' : 'No']);
       conyugalData.push(['Nombres y Apellidos del Cónyuge', safe(sociedadConyugal.nombreConyuge)]);
       conyugalData.push(['Tipo de Documento', safe(sociedadConyugal.tipoDocConyuge)]);
       conyugalData.push(['Número de Documento', safe(sociedadConyugal.numDocConyuge)]);
@@ -504,9 +504,17 @@ const tableRows = detalleData.map(
   // ========== 10. PROPUESTA DE PAGO ========== 
   children.push(createParagraph([new PageBreak()]));
   children.push(createHeading('10. PROPUESTA DE PAGO:'));
-  if (!propuestaPago || propuestaPago.tipoNegociacion !== 'proyeccion') {
-      children.push(createParagraph([createTextRun('No se presenta una propuesta de pago proyectada.')], { indentation: { left: 720 } }));
-  } else {
+  if (!propuestaPago || propuestaPago.tipoNegociacion === 'texto') {
+      const texto = (propuestaPago && propuestaPago.descripcion && String(propuestaPago.descripcion).trim())
+        ? String(propuestaPago.descripcion).trim()
+        : '';
+      if (texto) {
+          children.push(createParagraph([createTextRun('La propuesta de pago presentada por el deudor es la siguiente:')], { indentation: { left: 720 } }));
+          children.push(createParagraph([createTextRun(texto)], { alignment: AlignmentType.JUSTIFIED, indentation: { left: 720 } }));
+      } else {
+          children.push(createParagraph([createTextRun('No se presenta una propuesta de pago proyectada.')], { indentation: { left: 720 } }));
+      }
+  } else if (propuestaPago.tipoNegociacion === 'proyeccion') {
       classOrder.forEach(className => {
           if (groupedAcreencias[className]) {
               const classAcreencias = groupedAcreencias[className];
@@ -608,9 +616,13 @@ const tableRows = detalleData.map(
   children.push(createHeading('13. ANEXOS:'));
   children.push(createParagraph([createTextRun('Para efectos del cumplimiento de los requisitos exigidos, se anexan los siguientes documentos:')], { indentation: { left: 720 } }));
   children.push(createParagraph([createTextRun('13.1 Otros anexos')], { indentation: { left: 720 } }));
+  const anexosSeleccionados = solicitud.anexosSeleccionados || [];
+  anexosSeleccionados.forEach(doc => {
+      children.push(createParagraph([createTextRun(`     • ${doc}`)], { indentation: { left: 1080 } }));
+  });
   const anexos = solicitud.anexos || [];
   anexos.forEach(anexo => {
-      children.push(createParagraph([createTextRun(`     • ${anexo.filename}`)], { indentation: { left: 1080 } }));
+      children.push(createParagraph([createTextRun(`     • ${anexo.filename || anexo.name}`)], { indentation: { left: 1080 } }));
   });
 
   // ========== 14. NOTIFICACIONES ========== 
@@ -676,7 +688,8 @@ const generateConciliacionDocx = async (solicitud = {}) => {
     pretensiones = [],
     firma = {},
     sede = {},
-    anexos
+    anexos,
+    anexosSeleccionados
   } = solicitud;
 
   const FONT_SIZE_12PT = 24;
@@ -771,15 +784,20 @@ const generateConciliacionDocx = async (solicitud = {}) => {
   children.push(createConciliacionParagraph([createConciliacionTextRun('ANEXOS', { bold: true })], { alignment: AlignmentType.CENTER, spacing: { before: 400, after: 100 } }));
   children.push(createConciliacionParagraph([createConciliacionTextRun('Anexo los siguientes documentos')]));
 
-  const anexosList = anexos && anexos.length > 0
-    ? anexos.map(anexo => `${anexo.descripcion} - ${anexo.filename}`)
-    : [
-        `Copia de cédula de ciudadanía de ${nombreConvocante}`,
-        `Copia de cédula de ciudadanía de ${nombreConvocado}`,
-        `Registro civil de ${nombreConvocado}`,
-        'Certificado de Cuenta Bancaria',
-        'Poder otorgado'
-      ];
+  const checklistItems = anexosSeleccionados && anexosSeleccionados.length > 0 ? anexosSeleccionados : [];
+  const uploadedItems = anexos && anexos.length > 0 ? anexos.map(anexo => `${anexo.descripcion ? `${anexo.descripcion} - ` : ''}${anexo.filename}`) : [];
+
+  const anexosList = checklistItems.length > 0
+    ? [...checklistItems, ...uploadedItems]
+    : (uploadedItems.length > 0
+        ? uploadedItems
+        : [
+            `Copia de cédula de ciudadanía de ${nombreConvocante}`,
+            `Copia de cédula de ciudadanía de ${nombreConvocado}`,
+            `Registro civil de ${nombreConvocado}`,
+            'Certificado de Cuenta Bancaria',
+            'Poder otorgado'
+          ]);
   
   anexosList.forEach(item => {
       children.push(createConciliacionParagraph([createConciliacionTextRun(item)], { bullet: { level: 0 }}));
